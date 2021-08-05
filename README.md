@@ -18,9 +18,9 @@ Naming of folders in this project is mainly determined by task.
 
 `data`: put reference data here e.g. genomes, annots, array manifests, ...
 
-`00\_series\_folders`: these folders contain scripts/pipelines that process raw data into intermediary tables.
+`00_series_folders`: these folders contain scripts/pipelines that process raw data into intermediary tables.
 
-`10\_series\_folders`: these folders contain scripts that parse intermediary tables into plots, which become (supplementary) figures in the manuscript.\
+`10_series_folders`: these folders contain scripts that parse intermediary tables into plots, which become (supplementary) figures in the manuscript.\
 Examples: `10_emseq_vs_wgbs`, `11_methepic_vs_emseq_wgbs`, ...
 
 Standardisation of ggplot2 aesthetics: use `theme_minimal()` if you don't mind?
