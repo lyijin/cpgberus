@@ -27,6 +27,12 @@ Standardisation of ggplot2 aesthetics: use `theme_minimal()` if you don't mind?
 
 Standardisation of colour scheme: no opinion atm. Use default ggplot2 colour schemes for now, can be tweaked easily for publication later.
 
+## Analysis notes ##
+
+WR025 and WR069 are both females. So maybe can retain chrX, but drop chrY and chrM for sure. And also drop lambda and pUC19, those are control genomes.
+
+Hmm maybe I should implement this filtering in my Python scripts that generate these intermediate files, so all downstream R code can be free of the "remove these specific scaffolds" code.
+
 ## TODO ##
 
 WGBS datasets were treated as EM-seq datasets during processing (which is not correct). I am currently reprocessing the data, ETA 1 week. This means that all the intermediate files you're seeing now will change as well.
