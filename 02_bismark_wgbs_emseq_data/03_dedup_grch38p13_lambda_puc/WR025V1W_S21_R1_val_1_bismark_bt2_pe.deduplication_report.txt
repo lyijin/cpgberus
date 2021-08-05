@@ -1,0 +1,7 @@
+
+Total number of alignments analysed in 02_map_vs_hg38_lambda_puc/WR025V1W_S21_R1_val_1_bismark_bt2_pe.bam:	167962776
+Total number duplicated alignments removed:	15917123 (9.48%)
+Duplicated alignments were found at:	14590742 different position(s)
+
+Total count of deduplicated leftover sequences: 152045653 (90.52% of total)
+
