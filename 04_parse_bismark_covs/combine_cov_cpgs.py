@@ -40,6 +40,9 @@ Columns are
 
 There are no coverage filters with this script, do post-process the combined
 tables in your $FAVE_SCRIPTING_LANGUAGE.
+
+Table compilation automatically drops uninteresting scaffolds: lambda and pUC19
+(control genomes).
 """.strip()
 
 import argparse
@@ -178,6 +181,9 @@ for bc in args.bismark_covs:
            'gc_pct', 'cpg_context_nnncgnnn', sep='\t', file=outf)
     
     for line in tsv_reader:
+        # skip lines from scaffolds deemed uninteresting
+        if line[0] in ['lambda', 'pUC19']: continue
+        
         # at this point, "prev_line" is defo empty. conditional below checks
         # whether both lines are empty, or just "prev_line"
         if curr_line:   # only "prev_line" is empty

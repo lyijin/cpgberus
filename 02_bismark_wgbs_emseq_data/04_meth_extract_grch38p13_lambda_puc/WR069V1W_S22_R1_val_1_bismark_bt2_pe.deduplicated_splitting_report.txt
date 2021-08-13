@@ -3,28 +3,27 @@ WR069V1W_S22_R1_val_1_bismark_bt2_pe.deduplicated.bam
 Parameters used to extract methylation information:
 Bismark Extractor Version: v0.23.0
 Bismark result file: paired-end (SAM format)
-Ignoring first 2 bp of Read 2
 Output specified: strand-specific (default)
 No overlapping methylation calls specified
 
 
-Processed 172284472 lines in total
-Total number of methylation call strings processed: 344568944
+Processed 217724863 lines in total
+Total number of methylation call strings processed: 435449726
 
 Final Cytosine Methylation Report
 =================================
-Total number of C's analysed:	7900161122
+Total number of C's analysed:	8777613621
 
-Total methylated C's in CpG context:	289087703
-Total methylated C's in CHG context:	24724666
-Total methylated C's in CHH context:	132997797
+Total methylated C's in CpG context:	323586902
+Total methylated C's in CHG context:	7117436
+Total methylated C's in CHH context:	23124675
 
-Total C to T conversions in CpG context:	67883257
-Total C to T conversions in CHG context:	1647220653
-Total C to T conversions in CHH context:	5738247046
+Total C to T conversions in CpG context:	76208224
+Total C to T conversions in CHG context:	1873785274
+Total C to T conversions in CHH context:	6473791110
 
-C methylated in CpG context:	81.0%
-C methylated in CHG context:	1.5%
-C methylated in CHH context:	2.3%
+C methylated in CpG context:	80.9%
+C methylated in CHG context:	0.4%
+C methylated in CHH context:	0.4%
 
 
