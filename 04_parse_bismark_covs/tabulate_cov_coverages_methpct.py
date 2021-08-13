@@ -9,6 +9,9 @@ produces a compressed tab-separated file as output.
 Input files should not have a header, output files WILL have headers to make
 downstream table reading easier.
 
+Output automatically drops uninteresting scaffolds: lambda and pUC19
+(control genomes).
+
 Output format:
   1. scaffold name
   2. starting pos (1-based, like the input cov files)
@@ -57,6 +60,9 @@ for n, bc in enumerate(args.bismark_covs):
         bc, header=None,
         names=['scaffold', 'start_pos', 'end_pos', 
                f'{bc_id}_methpct', 'meth_reads', 'unmeth_reads'])
+    
+    # remove uninteresting scaffolds
+    bc_df = bc_df[~bc_df['scaffold'].isin(['lambda', 'pUC19'])]
     
     # calculate coverage
     bc_df[f'{bc_id}_cov'] = bc_df['meth_reads'] + bc_df['unmeth_reads']

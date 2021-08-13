@@ -29,12 +29,4 @@ Standardisation of colour scheme: no opinion atm. Use default ggplot2 colour sch
 
 ## Analysis notes ##
 
-WR025 and WR069 are both females. So maybe can retain chrX, but drop chrY and chrM for sure. And also drop lambda and pUC19, those are control genomes.
-
-Hmm maybe I should implement this filtering in my Python scripts that generate these intermediate files, so all downstream R code can be free of the "remove these specific scaffolds" code.
-
-## TODO ##
-
-WGBS datasets were treated as EM-seq datasets during processing (which is not correct). I am currently reprocessing the data, ETA 1 week. This means that all the intermediate files you're seeing now will change as well.
-
-However, the filenames and column structure of those files are correct though, so go ahead and write R code to parse stuff and create plots. I'll send an email to confirm everything is correct next week, so you can simply re-run your scripts to generate new correct plots.
+WR025 and WR069 are both females. The tables still do contain chrY and chrM (but not lambda or pUC19 though) so you might want to filter these chrs out downstream.
