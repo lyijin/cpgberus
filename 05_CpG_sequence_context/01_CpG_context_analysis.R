@@ -15,9 +15,9 @@ load("/scratch1/gua020/CpGberus_data/grch38p13_combined_covs_grl.RData")
 # Subset_covs_grl_W = covs_grl[grep("W$", names(covs_grl))]
 
 # Function to filter granges object for meth percentage range, and coverage cutoff's for meth / unmeth
-Filter_meth_pct <- function(Granges_object, meth_pct_keep_range, meth_unmeth_cutoff) {
+Filter_meth_pct <- function(Granges_object, meth_pct_keep_range, total_coverage_cutoff) {
     temp_grange = subset(Granges_object, meth_pct >= min(meth_pct_keep_range) & meth_pct <= max(meth_pct_keep_range))
-    temp_grange = subset(temp_grange, meth_cov >= meth_unmeth_cutoff[1] & unmeth_cov >= meth_unmeth_cutoff[2])
+    temp_grange = temp_grange[(temp_grange$meth_cov + temp_grange$unmeth_cov) >= total_coverage_cutoff, ]
     return(temp_grange)
 }
 
@@ -29,8 +29,8 @@ Filter_common_CpGs <- function(Granges_list_object) {
 }
 
 # Filter CpGs for meth and coverage
-Subset_covs_grl_meth = endoapply(covs_grl, Filter_meth_pct, c(100, 100), c(5, 0))
-Subset_covs_grl_unmeth = endoapply(covs_grl, Filter_meth_pct, c(0, 0), c(0, 5))
+Subset_covs_grl_meth = endoapply(covs_grl, Filter_meth_pct, c(100, 100), 15)
+Subset_covs_grl_unmeth = endoapply(covs_grl, Filter_meth_pct, c(0, 0), 15)
 
 Subset_covs_grl_meth_common = Filter_common_CpGs(Subset_covs_grl_meth)
 Subset_covs_grl_unmeth_common = Filter_common_CpGs(Subset_covs_grl_unmeth)
