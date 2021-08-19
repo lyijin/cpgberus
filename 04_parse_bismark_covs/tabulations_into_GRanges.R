@@ -10,7 +10,8 @@ library(GenomeInfoDb)
 #####  Paths  #####
 
 path_base = getwd()
-path_cpgberus = "/media/hb-stopwatch/work/cpgberus"
+# Assumes your ./data symlink points to hb-stopwatch/work/cpgberus
+path_cpgberus = file.path(path_base, "data")
 path_cpgberus_covs = file.path(path_cpgberus, "04_parse_bismark_covs")
 
 

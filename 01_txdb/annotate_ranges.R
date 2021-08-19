@@ -44,7 +44,7 @@ coverageRatio <- function(query, subject, ratio=TRUE) {
 }
 
 
-annotateDMRs <- function(dmrs, tx, cpgIslands, cpgShores, tss_proximal=2000) {
+annotateMeth <- function(dmrs, tx, cpgIslands, cpgShores, tss_proximal=2000) {
     
     # Want to do most analysis for "just" protein coding as well as all genes
     tx_pc <- tx[tx$transcript_type == "protein_coding"]
@@ -118,7 +118,8 @@ annotateDMRs <- function(dmrs, tx, cpgIslands, cpgShores, tss_proximal=2000) {
 }
 
 build <- 38
-path_base <- "/home/lie128/csiro/stopwatch/cpgberus/01_txdb"
-path_data <- file.path(path_base, "../data")
+# Changing base to the R project, which should direct /data to the symlink
+path_base <- getwd()
+path_data <- file.path(path_base, "data")
 gtf_suffix <- paste("gencode.v", build, ".annotation", sep="")
 load(loadLatest(mypath = path_data, suffix = gtf_suffix))
