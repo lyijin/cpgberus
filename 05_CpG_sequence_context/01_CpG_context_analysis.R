@@ -14,8 +14,16 @@ load("/scratch1/gua020/CpGberus_data/grch38p13_combined_covs_grl.RData")
 # Subset_covs_grl_E = covs_grl[grep("E$", names(covs_grl))]
 # Subset_covs_grl_W = covs_grl[grep("W$", names(covs_grl))]
 
-# Function to filter granges object for meth percentage range, and coverage cutoff's for meth / unmeth
-Filter_meth_pct <- function(Granges_object, meth_pct_keep_range, total_coverage_cutoff) {
+# Function to filter granges object in the following order: 1) Lower quartile discard; 2) meth percentage range; 3) Coverage cutoff's for meth / unmeth
+Filter_meth_pct <- function(Granges_object, discard_lower_quartile, meth_pct_keep_range, total_coverage_cutoff) {
+    
+    if (discard_lower_quartile == TRUE) {
+        quartiles = quantile(Granges_object$meth_cov + Granges_object$unmeth_cov)
+        lower_quartile = quartiles[["25%"]]
+        temp_grange = Granges_object[(Granges_object$meth_cov + Granges_object$unmeth_cov) >= lower_quartile, ]
+        print(paste0("Discarded < 25% lower quartile which equates to coverage < ", lower_quartile))
+    }
+    
     temp_grange = subset(Granges_object, meth_pct >= min(meth_pct_keep_range) & meth_pct <= max(meth_pct_keep_range))
     temp_grange = temp_grange[(temp_grange$meth_cov + temp_grange$unmeth_cov) >= total_coverage_cutoff, ]
     return(temp_grange)
@@ -28,12 +36,14 @@ Filter_common_CpGs <- function(Granges_list_object) {
     return(Subset_covs_grl_common)
 }
 
-# Filter CpGs for meth and coverage
-Subset_covs_grl_meth = endoapply(covs_grl, Filter_meth_pct, c(100, 100), 15)
-Subset_covs_grl_unmeth = endoapply(covs_grl, Filter_meth_pct, c(0, 0), 15)
+# Filter CpGs for quartile, meth and coverage
+Subset_covs_grl_meth = endoapply(covs_grl, Filter_meth_pct, TRUE, c(100, 100), 0)
+Subset_covs_grl_unmeth = endoapply(covs_grl, Filter_meth_pct, TRUE, c(0, 0), 0)
+Subset_covs_grl_middle = endoapply(covs_grl, Filter_meth_pct, TRUE, c(40, 60), 0)
 
 Subset_covs_grl_meth_common = Filter_common_CpGs(Subset_covs_grl_meth)
 Subset_covs_grl_unmeth_common = Filter_common_CpGs(Subset_covs_grl_unmeth)
+Subset_covs_grl_middle_common = Filter_common_CpGs(Subset_covs_grl_middle)
 
 # Function to tabulate nucleotide species for each postion of motif
 # Additional option to mutliply motif by total coverage
@@ -118,19 +128,27 @@ Motif_plot <- function(Motif_list_df, file_name, sample_names, remove_N) {
 # Motif tables and plots where motif multiplied by coverage
 counter = 0
 Plot_data_meth <- lapply(Subset_covs_grl_meth, Motif_frequency_table, length(Subset_covs_grl_meth), TRUE)
-Motif_plot(Plot_data_meth, "Meth_multiply", names(Plot_data_meth), TRUE)
+Motif_plot(Plot_data_meth, "Multiply_Meth", names(Plot_data_meth), TRUE)
 
 counter = 0
 Plot_data_unmeth <- lapply(Subset_covs_grl_unmeth, Motif_frequency_table, length(Subset_covs_grl_unmeth), TRUE)
-Motif_plot(Plot_data_unmeth, "Unmeth_multiply", names(Plot_data_unmeth), TRUE)
+Motif_plot(Plot_data_unmeth, "Multiply_Unmeth", names(Plot_data_unmeth), TRUE)
+
+counter = 0
+Plot_data_middle <- lapply(Subset_covs_grl_middle, Motif_frequency_table, length(Subset_covs_grl_middle), TRUE)
+Motif_plot(Plot_data_middle, "Multiply_Middle", names(Plot_data_middle), TRUE)
 
 counter = 0
 Plot_data_meth_common <- lapply(Subset_covs_grl_meth_common, Motif_frequency_table, length(Subset_covs_grl_meth_common), TRUE)
-Motif_plot(Plot_data_meth_common, "Meth_common_multiply", names(Plot_data_meth_common), TRUE)
+Motif_plot(Plot_data_meth_common, "Multiply_Meth_common", names(Plot_data_meth_common), TRUE)
 
 counter = 0
 Plot_data_unmeth_common <- lapply(Subset_covs_grl_unmeth_common, Motif_frequency_table, length(Subset_covs_grl_unmeth_common), TRUE)
-Motif_plot(Plot_data_unmeth_common, "Unmeth_common_multiply", names(Plot_data_unmeth_common), TRUE)
+Motif_plot(Plot_data_unmeth_common, "Multiply_Unmeth_common", names(Plot_data_unmeth_common), TRUE)
+
+counter = 0
+Plot_data_middle_common <- lapply(Subset_covs_grl_middle_common, Motif_frequency_table, length(Subset_covs_grl_middle_common), TRUE)
+Motif_plot(Plot_data_middle_common, "Multiply_Middle_common", names(Plot_data_middle_common), TRUE)
 
 
 # Motif tables and plots where motif not multiplied
@@ -143,11 +161,19 @@ Plot_data_unmeth_no_multiply <- lapply(Subset_covs_grl_unmeth, Motif_frequency_t
 Motif_plot(Plot_data_unmeth_no_multiply, "Unmeth", names(Plot_data_unmeth_no_multiply), TRUE)
 
 counter = 0
+Plot_data_middle_no_multiply <- lapply(Subset_covs_grl_middle, Motif_frequency_table, length(Subset_covs_grl_middle), FALSE)
+Motif_plot(Plot_data_middle_no_multiply, "Middle", names(Plot_data_middle_no_multiply), TRUE)
+
+counter = 0
 Plot_data_meth_common_no_multiply <- lapply(Subset_covs_grl_meth_common, Motif_frequency_table, length(Subset_covs_grl_meth_common), FALSE)
 Motif_plot(Plot_data_meth_common_no_multiply, "Meth_common", names(Plot_data_meth_common_no_multiply), TRUE)
 
 counter = 0
 Plot_data_unmeth_common_no_multiply <- lapply(Subset_covs_grl_unmeth_common, Motif_frequency_table, length(Subset_covs_grl_unmeth_common), FALSE)
 Motif_plot(Plot_data_unmeth_common_no_multiply, "Unmeth_common", names(Plot_data_unmeth_common_no_multiply), TRUE)
+
+counter = 0
+Plot_data_middle_common_no_multiply <- lapply(Subset_covs_grl_middle_common, Motif_frequency_table, length(Subset_covs_grl_middle_common), FALSE)
+Motif_plot(Plot_data_middle_common_no_multiply, "Middle_common", names(Plot_data_middle_common_no_multiply), TRUE)
 
 rm(covs_grl)
