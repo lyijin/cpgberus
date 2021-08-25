@@ -8,4 +8,4 @@ module load R/4.0.2
 
 cd ${SLURM_SUBMIT_DIR}
 
-R CMD BATCH 01_CpG_context_analysis.R
+R CMD BATCH 01_CpG_context_motif.R 
