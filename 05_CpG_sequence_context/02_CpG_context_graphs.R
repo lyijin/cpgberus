@@ -204,8 +204,8 @@ Plot_data_meth <- lapply(temp_grange_list, Motif_frequency_table, length(temp_gr
 Motif_plot(Plot_data_meth, "Smoothed_motifs", names(Plot_data_meth), TRUE)
 
 
-#####  Analysis for smoothed significant CpGs between EM-Seq and WGBS #####
-###########################################################################
+#####  Analysis for not smoothed significant CpGs between EM-Seq and WGBS #####
+###############################################################################
 
 # Flatten list of stats dataframes
 Covs_grl_stats_grange_no_smooth = do.call("rbind", Covs_grl_all_bsseq_list_stats_no_smooth)
