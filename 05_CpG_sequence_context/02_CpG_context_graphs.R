@@ -194,10 +194,16 @@ Covs_grl_stats_grange_smooth = Convert_df_to_grange(Covs_grl_stats_grange_smooth
 Plot_cor_motif(Covs_grl_stats_grange_smooth, "Smoothed_significant_CpGs")
 
 # Plot signficant motifs of high / low clusters
-temp_grange_list = list(High = Covs_grl_stats_grange_smooth[Covs_grl_stats_grange_smooth$High_low == "High", ], 
-    Low = Covs_grl_stats_grange_smooth[Covs_grl_stats_grange_smooth$High_low == "Low", ],
-    EM_seq_NA = Covs_grl_stats_grange_smooth[is.na(Covs_grl_stats_grange_smooth$cov_raw_average_m1), ],
-    WGBS_NA = Covs_grl_stats_grange_smooth[is.na(Covs_grl_stats_grange_smooth$cov_raw_average_m2), ])
+High_clust = Covs_grl_stats_grange_smooth[Covs_grl_stats_grange_smooth$High_low == "High", ]
+Low_clust = Covs_grl_stats_grange_smooth[Covs_grl_stats_grange_smooth$High_low == "Low", ]
+
+High_clust_no_NA = High_clust[!is.na(High_clust$cov_raw_average_m1), ]
+High_clust_no_NA = High_clust_no_NA[!is.na(High_clust_no_NA$cov_raw_average_m2), ]
+
+Low_clust_no_NA = Low_clust[!is.na(Low_clust$cov_raw_average_m1), ]
+Low_clust_no_NA = Low_clust_no_NA[!is.na(Low_clust_no_NA$cov_raw_average_m2), ]
+
+temp_grange_list = list(High = High_clust, Low = Low_clust, High_no_NA = High_clust_no_NA, Low_no_NA = Low_clust_no_NA)
     
 counter = 0
 Plot_data_meth <- lapply(temp_grange_list, Motif_frequency_table, length(temp_grange_list))
@@ -215,10 +221,16 @@ Covs_grl_stats_grange_no_smooth = Convert_df_to_grange(Covs_grl_stats_grange_no_
 Plot_cor_motif(Covs_grl_stats_grange_no_smooth, "Not_smoothed_significant_CpGs")
 
 # Plot signficant motifs of high / low clusters
-temp_grange_list = list(High = Covs_grl_stats_grange_no_smooth[Covs_grl_stats_grange_no_smooth$High_low == "High", ], 
-    Low = Covs_grl_stats_grange_no_smooth[Covs_grl_stats_grange_no_smooth$High_low == "Low", ],
-    EM_seq_NA = Covs_grl_stats_grange_no_smooth[is.na(Covs_grl_stats_grange_no_smooth$cov_raw_average_m1), ],
-    WGBS_NA = Covs_grl_stats_grange_no_smooth[is.na(Covs_grl_stats_grange_no_smooth$cov_raw_average_m2), ])
+High_clust = Covs_grl_stats_grange_no_smooth[Covs_grl_stats_grange_no_smooth$High_low == "High", ]
+Low_clust = Covs_grl_stats_grange_no_smooth[Covs_grl_stats_grange_no_smooth$High_low == "Low", ]
+
+High_clust_no_NA = High_clust[!is.na(High_clust$cov_raw_average_m1), ]
+High_clust_no_NA = High_clust_no_NA[!is.na(High_clust_no_NA$cov_raw_average_m2), ]
+
+Low_clust_no_NA = Low_clust[!is.na(Low_clust$cov_raw_average_m1), ]
+Low_clust_no_NA = Low_clust_no_NA[!is.na(Low_clust_no_NA$cov_raw_average_m2), ]
+
+temp_grange_list = list(High = High_clust, Low = Low_clust, High_no_NA = High_clust_no_NA, Low_no_NA = Low_clust_no_NA)
     
 counter = 0
 Plot_data_meth <- lapply(temp_grange_list, Motif_frequency_table, length(temp_grange_list))
