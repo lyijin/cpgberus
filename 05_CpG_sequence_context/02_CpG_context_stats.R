@@ -23,12 +23,12 @@ load("/scratch1/gua020/CpGberus_data/grch38p13_combined_covs_grl.RData")
 # # Function to merge CpGs which exist between all samples, fill empty with 0
 ################################################################################
 
-Merge_CpGs <- function(Dataframe_list_object) {
+Merge_CpGs <- function(Granges_list_object) {
 
     # Find existing chromosomes
     number_of_chromosomes = list()
     
-    for (data_frame in Dataframe_list_object) {
+    for (data_frame in Granges_list_object) {
         temp_list = as.character(unique(data_frame$chr))
         number_of_chromosomes = unlist(unique(c(number_of_chromosomes, temp_list)))
     }
@@ -39,7 +39,7 @@ Merge_CpGs <- function(Dataframe_list_object) {
     for (chr_num in number_of_chromosomes) {
         temp_pos = list()
         
-        for (data_frame in Dataframe_list_object) {
+        for (data_frame in Granges_list_object) {
             chr_num_pos = data_frame[(data_frame$chr == chr_num), "pos"]
             temp_pos = unique(unlist(c(temp_pos, chr_num_pos)))
         }
@@ -51,9 +51,9 @@ Merge_CpGs <- function(Dataframe_list_object) {
     # Compare sample CpGs to existing CpGs and fill differences with 0    
     final_dataframe_list = list()
     
-    for (dataframe_index in seq(length(Dataframe_list_object))) {
-        data_frame = Dataframe_list_object[[dataframe_index]]
-        data_frame_name = names(Dataframe_list_object[dataframe_index])
+    for (dataframe_index in seq(length(Granges_list_object))) {
+        data_frame = Granges_list_object[[dataframe_index]]
+        data_frame_name = names(Granges_list_object[dataframe_index])
         temp_df = data.frame(chr = factor(), pos = integer(), N = integer(), X = integer())
 
         for (chr_num in number_of_chromosomes) {
@@ -70,7 +70,7 @@ Merge_CpGs <- function(Dataframe_list_object) {
         temp_df = temp_df[order(temp_df$chr, temp_df$pos), ]
         rownames(temp_df) <- seq(1:nrow(temp_df))
         final_dataframe_list[[data_frame_name]] <- temp_df
-        print(paste0(data_frame_name, " data is finished merging: ", dataframe_index, " / ", length(Dataframe_list_object)))
+        print(paste0(data_frame_name, " data is finished merging: ", dataframe_index, " / ", length(Granges_list_object)))
     }
     return(final_dataframe_list)
 }
@@ -108,7 +108,7 @@ Create_BS_object <- function(Dataframe_list_object) {
 
 ##############################################################
 # # Function here to create smooth fit by chromsome
-
+#
 # This was created so that the BS smoothed values can be put into
 # DMLtest statistics function. DMLtest itself uses a smoothing
 # average algorithim before statistics, where smoothing can be 
@@ -137,7 +137,7 @@ Create_smooth_fit_list_per_chr <- function(bsseq_object, smoothing_span, number_
 
 ##############################################################
 # # Function here to perform stats by chromsome
-
+#
 # Approximately 1.2 gb per chromosome / worker (sample).
 # On one HPC node, could run theoretically 20 workers (20 cpu's).
 # Should be fine to run 20 samples per node (20gb needed approx).
@@ -186,12 +186,5 @@ Covs_grl_all_bsseq_list_stats = Create_stat_list_per_chr(Covs_grl_all_bsseq, smo
 Covs_grl_all_bsseq_list_stats_no_smooth = Create_stat_list_per_chr(Covs_grl_all_bsseq, smoothing_bool = FALSE, number_of_workers = 8, group_1 = sample_group_1, group_2 = sample_group_2)
 
 # Save workspace
-rm(sample_group_1)
-rm(sample_group_2)
-rm(Create_BS_object)
-rm(Create_smooth_fit_list_per_chr)
-rm(Create_stat_list_per_chr)
-rm(Merge_CpGs)
-
-save.image("Motif_stats.RData")
+save(Covs_grl_all_bsseq, Covs_grl_all_bsseq_list_stats, Covs_grl_all_bsseq_list_stats_no_smooth, file = "Motif_stats.RData")
 quit(save = "no")
