@@ -18,7 +18,8 @@ library(bsseq)
 #####  Load data  #####
 #######################
 
-load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats.RData")
+load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats_not_subsampled.RData")
+load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats_subsampled.RData")
 
 #####  Functions  #####
 #######################
@@ -161,7 +162,7 @@ Plot_cor_motif <- function(Granges_object, file_name) {
 # # Convert flattened dataframe of DSS stats to a granges with metadata
 #######################################################################
 
-Convert_df_to_grange <- function(Granges_object) {
+Convert_df_to_grange <- function(Granges_object, bsseq_object) {
 
     # Extract significant regions and generate granges object with sequences / GC percentage
     Covs_grl_stats_flatten_sig = Granges_object[(Granges_object$fdr <= 0.05), ]
@@ -169,9 +170,9 @@ Convert_df_to_grange <- function(Granges_object) {
 
     # Extract coverages from bbseq object and add to granges object metadata
                     #### Note: Have to QC to check if coverage agrees with Jason's original granges object ####
-    raw_coverages_sig = getCoverage(Covs_grl_all_bsseq, regions = Covs_grl_stats_flatten_sig)
+    raw_coverages_sig = getCoverage(bsseq_object, regions = Covs_grl_stats_flatten_sig)
     raw_coverages_sig = data.frame(do.call("rbind", raw_coverages_sig))
-    colnames(raw_coverages_sig) <- sampleNames(Covs_grl_all_bsseq)
+    colnames(raw_coverages_sig) <- sampleNames(bsseq_object)
 
     Covs_grl_stats_flatten_sig$cov_raw_average_m1 <- as.integer(round(rowMeans(raw_coverages_sig[c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E")])))
     Covs_grl_stats_flatten_sig$cov_raw_average_m2 <- as.integer(round(rowMeans(raw_coverages_sig[c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W")])))
@@ -188,7 +189,7 @@ Convert_df_to_grange <- function(Granges_object) {
 
 # Flatten list of stats dataframes, covert to grange with metadata
 Covs_grl_stats_grange_smooth = do.call("rbind", Covs_grl_all_bsseq_list_stats)
-Covs_grl_stats_grange_smooth = Convert_df_to_grange(Covs_grl_stats_grange_smooth)
+Covs_grl_stats_grange_smooth = Convert_df_to_grange(Covs_grl_stats_grange_smooth, Covs_grl_all_bsseq)
 
 # Plot signficant scatter of high / low clusters
 Plot_cor_motif(Covs_grl_stats_grange_smooth, "Smoothed_significant_CpGs")
@@ -215,7 +216,7 @@ Motif_plot(Plot_data_meth, "Smoothed_motifs", names(Plot_data_meth), TRUE)
 
 # Flatten list of stats dataframes
 Covs_grl_stats_grange_no_smooth = do.call("rbind", Covs_grl_all_bsseq_list_stats_no_smooth)
-Covs_grl_stats_grange_no_smooth = Convert_df_to_grange(Covs_grl_stats_grange_no_smooth)
+Covs_grl_stats_grange_no_smooth = Convert_df_to_grange(Covs_grl_stats_grange_no_smooth, Covs_grl_all_bsseq)
 
 # Plot signficant scatter of high / low clusters
 Plot_cor_motif(Covs_grl_stats_grange_no_smooth, "Not_smoothed_significant_CpGs")

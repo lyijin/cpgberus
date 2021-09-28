@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH --time=24:00:00
+#SBATCH --mem=60gb
+#SBATCH --ntasks-per-node=9
+
+module load R/4.0.2
+
+cd ${SLURM_SUBMIT_DIR}
+
+R CMD BATCH 01_coverage_and_sub_sampling.R
+
+sleep 5
+
+R CMD BATCH 02_CpG_context_stats.R
