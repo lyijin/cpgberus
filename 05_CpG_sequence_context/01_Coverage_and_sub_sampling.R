@@ -20,24 +20,26 @@ load("/scratch1/gua020/CpGberus_data/grch38p13_combined_covs_grl.RData")
 #####  Functions  #####
 #######################
 
-#######################################################################
-# # Funtion to plot either density or tally coverage distribution
-#######################################################################
+########################################################
+# # Funtion to plot either density or tally distribution
+# # and return plotting values.
+########################################################
 
-Coverage_distribution <- function(List_of_dataframes, density_or_tally, coverage_column_name, plot_name) {
+Variable_distribution <- function(List_of_dataframes, density_or_tally, variable_column_name, plot_name, x_axis_cutoff) {
 
     n = names(List_of_dataframes)
     
     if (density_or_tally == "Density") {
-        # Calculate coverage density, then dataframe of x and y density coord + name
-        print("Calculating coverage densities")
-        temp_df = lapply(List_of_dataframes, function(x) density(x[, coverage_column_name], adjust = 5))
+        # Calculate density, then dataframe of x and y density coord + name
+        print("Calculating densities")
+        temp_df = lapply(List_of_dataframes, function(x) density(x[, variable_column_name], adjust = 5))
         temp_df = lapply(n, function(n) data.frame(Sample_name = n, x_values = temp_df[[n]][["x"]], y_values = temp_df[[n]][["y"]]))
     } else if (density_or_tally == "Tally") {
-        # Calculate tally coverage density, then dataframe of x and y density coord + name
-        print("Calculating coverage tallys")
-        temp_df = lapply(List_of_dataframes, function(x) data.frame(table(x[, coverage_column_name])))
-        temp_df = lapply(n, function(n) data.frame(Sample_name = n, x_values = as.integer(temp_df[[n]][["Var1"]]), y_values = temp_df[[n]][["Freq"]]))
+        # Calculate tally density, convert factor to numeric, then dataframe of x and y density coord + name
+        print("Calculating tallys")
+        temp_df = lapply(List_of_dataframes, function(x) data.frame(table(x[, variable_column_name])))
+        temp_df = lapply(temp_df, function(x) data.frame(Var1 = as.numeric(levels(x$Var1))[x$Var1], Freq = x$Freq))
+        temp_df = lapply(n, function(n) data.frame(Sample_name = n, x_values = temp_df[[n]][["Var1"]], y_values = temp_df[[n]][["Freq"]]))
     }
     
     # Collapse list of dataframes
@@ -52,10 +54,10 @@ Coverage_distribution <- function(List_of_dataframes, density_or_tally, coverage
 
     # Plot
     pdf(paste0(plot_name, ".pdf"), width = 11.69, height = 8.3)
-    plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Seq_type)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10)) + theme_bw() + xlab("Coverage") + ylab(density_or_tally))
-    plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Seq_type)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10), limits = c(-5, 70)) + theme_bw() + xlab("Coverage") + ylab(density_or_tally))
-    plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Sample_name)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10), limits = c(-5, 70)) + theme_bw() + xlab("Coverage") + ylab(density_or_tally))
-    plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Sample_name_2)) + geom_line(aes(linetype = Seq_type)) + scale_x_continuous(breaks = pretty_breaks(10), limits = c(-5, 70)) + theme_bw() + xlab("Coverage") + ylab(density_or_tally))
+    plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Seq_type)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10)) + theme_bw() + xlab(variable_column_name) + ylab(density_or_tally))
+    plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Seq_type)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10), limits = x_axis_cutoff) + theme_bw() + xlab(variable_column_name) + ylab(density_or_tally))
+    plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Sample_name)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10), limits = x_axis_cutoff) + theme_bw() + xlab(variable_column_name) + ylab(density_or_tally))
+    plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Sample_name_2)) + geom_line(aes(linetype = Seq_type)) + scale_x_continuous(breaks = pretty_breaks(10), limits = x_axis_cutoff) + theme_bw() + xlab(variable_column_name) + ylab(density_or_tally))
     dev.off()
     
     return(temp_df)
@@ -72,10 +74,10 @@ rm(covs_grl)
 Covs_grl_all_df_subset = lapply(Covs_grl_all_df, function(x) x[x[, "N"] <= 100, ])
 
 # Calculate and plot coverage density, coverage filtered < 100 because density calculations are affected.
-Covs_grl_all_df_density = Coverage_distribution(Covs_grl_all_df_subset, "Density", "N", "Coverage_analysis_density")
+Covs_grl_all_df_density = Variable_distribution(Covs_grl_all_df_subset, "Density", "N", "Coverage_analysis_density", c(-5, 70))
 
 # Calculate and plot coverage tally without filtering for coverage
-Covs_grl_all_df_tally = Coverage_distribution(Covs_grl_all_df, "Tally", "N", "Coverage_analysis_tally")
+Covs_grl_all_df_tally = Variable_distribution(Covs_grl_all_df, "Tally", "N", "Coverage_analysis_tally", c(-5, 70))
 
 
 #####  Subsample and create granges list for stat analysis script  #####
@@ -120,7 +122,7 @@ for (data_name in Samples_to_correct) {
 }
 
 # Calculate and plot coverage tally without filtering for coverage.
-Covs_grl_all_df_tally_subsample = Coverage_distribution(Covs_grl_all_df_subset, "Tally", "Subsample_coverage", "Coverage_analysis_tally_subsample")
+Covs_grl_all_df_tally_subsample = Variable_distribution(Covs_grl_all_df_subset, "Tally", "Subsample_coverage", "Coverage_analysis_tally_subsample", c(-5, 70))
 
 # Convert to granges list for stats analysis.
 covs_grl_subsample = lapply(Covs_grl_all_df_subset, function(x) GRanges(seqnames = x$chr, ranges=IRanges(start = x$pos, end = (x$pos + 1)), 

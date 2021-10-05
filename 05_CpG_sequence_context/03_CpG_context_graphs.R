@@ -162,7 +162,7 @@ Plot_cor_motif <- function(Granges_object, file_name) {
 # # Convert flattened dataframe of DSS stats to a granges with metadata
 #######################################################################
 
-Convert_df_to_grange <- function(Granges_object, bsseq_object) {
+Convert_df_to_grange <- function(Granges_object, bsseq_object, Sample_group_1, Sample_group_2) {
 
     # Extract significant regions and generate granges object with sequences / GC percentage
     Covs_grl_stats_flatten_sig = Granges_object[(Granges_object$fdr <= 0.05), ]
@@ -174,8 +174,8 @@ Convert_df_to_grange <- function(Granges_object, bsseq_object) {
     raw_coverages_sig = data.frame(do.call("rbind", raw_coverages_sig))
     colnames(raw_coverages_sig) <- sampleNames(bsseq_object)
 
-    Covs_grl_stats_flatten_sig$cov_raw_average_m1 <- as.integer(round(rowMeans(raw_coverages_sig[c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E")])))
-    Covs_grl_stats_flatten_sig$cov_raw_average_m2 <- as.integer(round(rowMeans(raw_coverages_sig[c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W")])))
+    Covs_grl_stats_flatten_sig$cov_raw_average_m1 <- as.integer(ceiling(rowMeans(raw_coverages_sig[Sample_group_1])))
+    Covs_grl_stats_flatten_sig$cov_raw_average_m2 <- as.integer(ceiling(rowMeans(raw_coverages_sig[Sample_group_2])))
 
     Covs_grl_stats_flatten_sig$cov_raw_average_m1[(Covs_grl_stats_flatten_sig$cov_raw_average_m1 == 0)] <- NA
     Covs_grl_stats_flatten_sig$cov_raw_average_m2[(Covs_grl_stats_flatten_sig$cov_raw_average_m2 == 0)] <- NA
@@ -183,58 +183,52 @@ Convert_df_to_grange <- function(Granges_object, bsseq_object) {
     return(Covs_grl_stats_flatten_sig)
 }
 
+#######################################################
+# # Wrapper function to pre-process and plot stats list 
+# # object (DMLtest) from 02_CpG_context_stats.
+#######################################################
 
-#####  Analysis for smoothed significant CpGs between EM-Seq and WGBS #####
-###########################################################################
+Process_and_plot <- function(Stats_list_DMLtest, Bsseq_object_DMLtest, Sample_group_1, Sample_group_2, file_name_correlation, file_name_motif) {
 
-# Flatten list of stats dataframes, covert to grange with metadata
-Covs_grl_stats_grange_smooth = do.call("rbind", Covs_grl_all_bsseq_list_stats)
-Covs_grl_stats_grange_smooth = Convert_df_to_grange(Covs_grl_stats_grange_smooth, Covs_grl_all_bsseq)
+    # Flatten list of stats dataframes, covert to grange with metadata
+    Covs_grl_stats = do.call("rbind", Stats_list_DMLtest)
+    Covs_grl_stats = Convert_df_to_grange(Covs_grl_stats, Bsseq_object_DMLtest, Sample_group_1, Sample_group_2)
 
-# Plot signficant scatter of high / low clusters
-Plot_cor_motif(Covs_grl_stats_grange_smooth, "Smoothed_significant_CpGs")
+    # Plot signficant scatter of high / low clusters
+    print("Plotting correlations")
+    Plot_cor_motif(Covs_grl_stats, file_name_correlation)
 
-# Plot signficant motifs of high / low clusters
-High_clust = Covs_grl_stats_grange_smooth[Covs_grl_stats_grange_smooth$High_low == "High", ]
-Low_clust = Covs_grl_stats_grange_smooth[Covs_grl_stats_grange_smooth$High_low == "Low", ]
+    # Plot signficant motifs of high / low clusters
+    High_clust = Covs_grl_stats[Covs_grl_stats$High_low == "High", ]
+    Low_clust = Covs_grl_stats[Covs_grl_stats$High_low == "Low", ]
 
-High_clust_no_NA = High_clust[!is.na(High_clust$cov_raw_average_m1), ]
-High_clust_no_NA = High_clust_no_NA[!is.na(High_clust_no_NA$cov_raw_average_m2), ]
+    High_clust_no_NA = High_clust[!is.na(High_clust$cov_raw_average_m1), ]
+    High_clust_no_NA = High_clust_no_NA[!is.na(High_clust_no_NA$cov_raw_average_m2), ]
 
-Low_clust_no_NA = Low_clust[!is.na(Low_clust$cov_raw_average_m1), ]
-Low_clust_no_NA = Low_clust_no_NA[!is.na(Low_clust_no_NA$cov_raw_average_m2), ]
+    Low_clust_no_NA = Low_clust[!is.na(Low_clust$cov_raw_average_m1), ]
+    Low_clust_no_NA = Low_clust_no_NA[!is.na(Low_clust_no_NA$cov_raw_average_m2), ]
 
-temp_grange_list = list(High = High_clust, Low = Low_clust, High_no_NA = High_clust_no_NA, Low_no_NA = Low_clust_no_NA)
+    temp_grange_list = list(High = High_clust, Low = Low_clust, High_no_NA = High_clust_no_NA, Low_no_NA = Low_clust_no_NA)
     
-counter = 0
-Plot_data_meth <- lapply(temp_grange_list, Motif_frequency_table, length(temp_grange_list))
-Motif_plot(Plot_data_meth, "Smoothed_motifs", names(Plot_data_meth), TRUE)
-
-
-#####  Analysis for not smoothed significant CpGs between EM-Seq and WGBS #####
-###############################################################################
-
-# Flatten list of stats dataframes
-Covs_grl_stats_grange_no_smooth = do.call("rbind", Covs_grl_all_bsseq_list_stats_no_smooth)
-Covs_grl_stats_grange_no_smooth = Convert_df_to_grange(Covs_grl_stats_grange_no_smooth, Covs_grl_all_bsseq)
-
-# Plot signficant scatter of high / low clusters
-Plot_cor_motif(Covs_grl_stats_grange_no_smooth, "Not_smoothed_significant_CpGs")
-
-# Plot signficant motifs of high / low clusters
-High_clust = Covs_grl_stats_grange_no_smooth[Covs_grl_stats_grange_no_smooth$High_low == "High", ]
-Low_clust = Covs_grl_stats_grange_no_smooth[Covs_grl_stats_grange_no_smooth$High_low == "Low", ]
-
-High_clust_no_NA = High_clust[!is.na(High_clust$cov_raw_average_m1), ]
-High_clust_no_NA = High_clust_no_NA[!is.na(High_clust_no_NA$cov_raw_average_m2), ]
-
-Low_clust_no_NA = Low_clust[!is.na(Low_clust$cov_raw_average_m1), ]
-Low_clust_no_NA = Low_clust_no_NA[!is.na(Low_clust_no_NA$cov_raw_average_m2), ]
-
-temp_grange_list = list(High = High_clust, Low = Low_clust, High_no_NA = High_clust_no_NA, Low_no_NA = Low_clust_no_NA)
+    print("Plotting motifs")
+    counter <<- 0
+    Plot_data_meth <- lapply(temp_grange_list, Motif_frequency_table, length(temp_grange_list))
+    Motif_plot(Plot_data_meth, file_name_motif, names(Plot_data_meth), TRUE)
     
-counter = 0
-Plot_data_meth <- lapply(temp_grange_list, Motif_frequency_table, length(temp_grange_list))
-Motif_plot(Plot_data_meth, "Not_smoothed_motifs", names(Plot_data_meth), TRUE)
+    return(Covs_grl_stats)
+}
 
-quit(save = "no")
+#####  Analysis for significant CpGs between EM-Seq and WGBS #####
+##################################################################
+
+# Pre process and plot smoothed significant CpGs between EM-Seq and WGBS
+Process_and_plot(Covs_grl_all_bsseq_list_stats, Covs_grl_all_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Smoothed_significant_CpGs", "Smoothed_motifs")
+
+# Pre process and plot not smoothed significant CpGs between EM-Seq and WGBS
+Process_and_plot(Covs_grl_all_bsseq_list_stats_no_smooth, Covs_grl_all_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Not_smoothed_significant_CpGs", "Not_smoothed_motifs")
+
+# Pre process and plot smoothed significant subsampled CpGs between EM-Seq and WGBS
+Process_and_plot(Covs_grl_all_bsseq_list_stats_subsample, Covs_grl_all_bsseq_subsample, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Smoothed_significant_CpGs_subsample", "Smoothed_motifs_subsample")
+
+# Pre process and plot not smoothed significant subsampled CpGs between EM-Seq and WGBS
+Process_and_plot(Covs_grl_all_bsseq_list_stats_no_smooth_subsample, Covs_grl_all_bsseq_subsample, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Not_smoothed_significant_CpGs_subsample", "Not_smoothed_motifs_subsample")
