@@ -7,8 +7,16 @@ module load R/4.0.2
 
 cd ${SLURM_SUBMIT_DIR}
 
-R CMD BATCH 01_coverage_and_sub_sampling.R
+R CMD BATCH 01_Coverage_and_sub_sampling.R
 
 sleep 5
 
 R CMD BATCH 02_CpG_context_stats.R
+
+sleep 5
+
+R CMD BATCH 03_CpG_context_graphs.R
+
+sleep 5
+
+R CMD BATCH 04_Strand_bias.R

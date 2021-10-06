@@ -1,8 +1,10 @@
 #####  Script information  #####
 ################################
 
-# Explore eveness and delta meth between watson and crick.
-# See if there is any differences between EM-Seq to WGBS
+# Explore evenness and delta meth between watson and crick.
+# See if there are any differences between EM-Seq to WGBS.
+# Coverage evenness and absolute delta are based on Yi Jin's python script.
+# These values may have to be recalculated for subsampled data.
 
 #####  Dependencies  #####
 ##########################
@@ -16,23 +18,25 @@ library(reshape2)
 #######################
 
 load("/scratch1/gua020/CpGberus_data/grch38p13_combined_covs_grl.RData")
+load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Data_coverage_filtered.RData")
 
 #####  Functions  #####
 #######################
 
-########################################################
+###########################################################
 # # Funtion to plot either density or tally distribution
-# # and return plotting values.
-########################################################
+# # and return plotting values. Export as png because tally 
+# # contains a lot of datapoints making a large PDF.
+###########################################################
 
-Variable_distribution <- function(List_of_dataframes, density_or_tally, variable_column_name, plot_name, x_axis_cutoff) {
+Variable_distribution <- function(List_of_dataframes, density_or_tally, variable_column_name, plot_name, folder_name, x_axis_cutoff, density_adjust) {
 
     n = names(List_of_dataframes)
     
     if (density_or_tally == "Density") {
         # Calculate density, then dataframe of x and y density coord + name
         print("Calculating densities")
-        temp_df = lapply(List_of_dataframes, function(x) density(x[, variable_column_name], adjust = 2))
+        temp_df = lapply(List_of_dataframes, function(x) density(x[, variable_column_name], adjust = density_adjust))
         temp_df = lapply(n, function(n) data.frame(Sample_name = n, x_values = temp_df[[n]][["x"]], y_values = temp_df[[n]][["y"]]))
     } else if (density_or_tally == "Tally") {
         # Calculate tally density, convert factor to numeric, then dataframe of x and y density coord + name
@@ -53,23 +57,23 @@ Variable_distribution <- function(List_of_dataframes, density_or_tally, variable
     temp_df$Seq_type[grep("W$", temp_df$Sample_name)] = "WGBS"
 
     # Plot
-    png(paste0("01_", plot_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
+    png(paste0(folder_name, "/01_", plot_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
     print(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Sample_name)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10)) + theme_bw() + xlab(variable_column_name) + ylab(density_or_tally))
     dev.off()
     
-    png(paste0("02_", plot_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
+    png(paste0(folder_name, "/02_", plot_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
     print(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Sample_name)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10), limits = x_axis_cutoff) + theme_bw() + xlab(variable_column_name) + ylab(density_or_tally))
     dev.off()
     
-    png(paste0("03_", plot_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
+    png(paste0(folder_name, "/03_", plot_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
     print(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Sample_name_2)) + geom_line(aes(linetype = Seq_type)) + scale_x_continuous(breaks = pretty_breaks(10), limits = x_axis_cutoff) + theme_bw() + xlab(variable_column_name) + ylab(density_or_tally))
     dev.off()
     
-    png(paste0("04_", plot_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
+    png(paste0(folder_name, "/04_", plot_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
     print(ggplot(temp_df, aes(x=x_values, y=y_values, color = Seq_type)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10), limits = x_axis_cutoff) + theme_bw() + facet_wrap( ~ Sample_name_2, ncol = 2) + xlab(variable_column_name) + ylab(density_or_tally))
     dev.off()
     
-    png(paste0("05_", plot_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
+    png(paste0(folder_name, "/05_", plot_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
     print(ggplot(temp_df, aes(x=x_values, y=log2(y_values), color = Seq_type)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10), limits = x_axis_cutoff) + theme_bw() + facet_wrap( ~ Sample_name_2, ncol = 2) + xlab(variable_column_name) + ylab(density_or_tally))
     dev.off()
     
@@ -144,12 +148,14 @@ Calculate_delta_evenness_meth_pct <- function(List_of_dataframes_common, biologi
     return(List_of_dataframes_common)
 }
 
-#####  Plot graphs  #####
-#########################
+#####  Plot graphs for original data #####
+##########################################
+
+# Create directroy to store plots
+dir.create("Strand_bias_plots_not_subsample")
 
 # Filter for common CpGs and calculate deltas between samples and groups
 Covs_grl_all_df_common = Filter_common_CpGs(covs_grl)
-#Covs_grl_all_df_common_test = endoapply(Covs_grl_all_df_common,"[",1:1000000)
 Covs_grl_all_df_common = sapply(names(Covs_grl_all_df_common), function(x) data.frame(chr = seqnames(Covs_grl_all_df_common[[x]]), pos = start(Covs_grl_all_df_common[[x]]),
                         N = (Covs_grl_all_df_common[[x]]$meth_cov + Covs_grl_all_df_common[[x]]$unmeth_cov), X = Covs_grl_all_df_common[[x]]$meth_cov, 
                         evenness = Covs_grl_all_df_common[[x]]$evenness, abs_delta_meth_pct = Covs_grl_all_df_common[[x]]$abs_delta_meth_pct, sample_name = x),
@@ -158,13 +164,38 @@ Covs_grl_all_df_common = sapply(names(Covs_grl_all_df_common), function(x) data.
 Covs_grl_all_df_common = Calculate_delta_evenness_meth_pct(Covs_grl_all_df_common, c("WR025V1", "WR025V9", "WR069V1", "WR069V9"), c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"))
 
 # Analyse and plot group delta's, use first element in list because data is the same
-Covs_grl_all_df_tally_abs_delta_group = Variable_distribution(Covs_grl_all_df_common[1], "Density", "group_delta_evenness", "Group_Evenness_tally", c(-0.5, 0.5))
-Covs_grl_all_df_tally_evenness_group = Variable_distribution(Covs_grl_all_df_common[1], "Density", "group_abs_delta_meth_pct", "Group_Abs_delta_meth_pct_tally", c(-100, 100))
+Covs_grl_all_df_tally_abs_delta_group = Variable_distribution(Covs_grl_all_df_common[1], "Density", "group_delta_evenness", "Group_Evenness_density", "Strand_bias_plots_not_subsample",  c(-0.5, 0.5), 1)
+Covs_grl_all_df_tally_evenness_group = Variable_distribution(Covs_grl_all_df_common[1], "Density", "group_abs_delta_meth_pct", "Group_Abs_delta_meth_pct_density", "Strand_bias_plots_not_subsample", c(-100, 100), 1)
 
 # Extract WGBS samples (EM-Seq is reference, so all zero's) analyse and plot sample delta's
 Covs_grl_all_df_common = Covs_grl_all_df_common[grep("W$", names(Covs_grl_all_df_common))]
-Covs_grl_all_df_tally_abs_delta_sample = Variable_distribution(Covs_grl_all_df_common, "Density", "sample_delta_evenness", "Sample_Evenness_tally", c(-0.5, 0.5))
-Covs_grl_all_df_tally_evenness_sample = Variable_distribution(Covs_grl_all_df_common, "Density", "sample_abs_delta_meth_pct", "Sample_Abs_delta_meth_pct_tally", c(-100, 100))
+Covs_grl_all_df_tally_abs_delta_sample = Variable_distribution(Covs_grl_all_df_common, "Density", "sample_delta_evenness", "Sample_Evenness_density", "Strand_bias_plots_not_subsample", c(-0.5, 0.5), 1)
+Covs_grl_all_df_tally_evenness_sample = Variable_distribution(Covs_grl_all_df_common, "Density", "sample_abs_delta_meth_pct", "Sample_Abs_delta_meth_pct_density", "Strand_bias_plots_not_subsample", c(-100, 100), 1)
 
-save(Covs_grl_all_df_tally_abs_delta_group, Covs_grl_all_df_tally_evenness_group, Covs_grl_all_df_tally_abs_delta_sample, Covs_grl_all_df_tally_evenness_sample, file ="Strand_bias.RData")
+
+#####  Plot graphs for subsampled data #####
+############################################
+
+# Create directroy to store plots
+dir.create("Strand_bias_plots_subsample")
+
+# Filter for common CpGs and calculate deltas between samples and groups
+Covs_grl_all_df_common = Filter_common_CpGs(covs_grl_subsample)
+Covs_grl_all_df_common = sapply(names(Covs_grl_all_df_common), function(x) data.frame(chr = seqnames(Covs_grl_all_df_common[[x]]), pos = start(Covs_grl_all_df_common[[x]]),
+                        N = (Covs_grl_all_df_common[[x]]$meth_cov + Covs_grl_all_df_common[[x]]$unmeth_cov), X = Covs_grl_all_df_common[[x]]$meth_cov, 
+                        evenness = Covs_grl_all_df_common[[x]]$evenness, abs_delta_meth_pct = Covs_grl_all_df_common[[x]]$abs_delta_meth_pct, sample_name = x),
+                        simplify = FALSE, USE.NAMES = TRUE)
+            
+Covs_grl_all_df_common = Calculate_delta_evenness_meth_pct(Covs_grl_all_df_common, c("WR025V1", "WR025V9", "WR069V1", "WR069V9"), c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"))
+
+# Analyse and plot group delta's, use first element in list because data is the same
+Covs_grl_all_df_tally_abs_delta_group = Variable_distribution(Covs_grl_all_df_common[1], "Density", "group_delta_evenness", "Group_Evenness_density", "Strand_bias_plots_subsample",  c(-0.5, 0.5), 1)
+Covs_grl_all_df_tally_evenness_group = Variable_distribution(Covs_grl_all_df_common[1], "Density", "group_abs_delta_meth_pct", "Group_Abs_delta_meth_pct_density", "Strand_bias_plots_subsample", c(-100, 100), 1)
+
+# Extract WGBS samples (EM-Seq is reference, so all zero's) analyse and plot sample delta's
+Covs_grl_all_df_common = Covs_grl_all_df_common[grep("W$", names(Covs_grl_all_df_common))]
+Covs_grl_all_df_tally_abs_delta_sample = Variable_distribution(Covs_grl_all_df_common, "Density", "sample_delta_evenness", "Sample_Evenness_density", "Strand_bias_plots_subsample", c(-0.5, 0.5), 1)
+Covs_grl_all_df_tally_evenness_sample = Variable_distribution(Covs_grl_all_df_common, "Density", "sample_abs_delta_meth_pct", "Sample_Abs_delta_meth_pct_density", "Strand_bias_plots_subsample", c(-100, 100), 1)
+
+#save(Covs_grl_all_df_tally_abs_delta_group, Covs_grl_all_df_tally_evenness_group, Covs_grl_all_df_tally_abs_delta_sample, Covs_grl_all_df_tally_evenness_sample, file ="Strand_bias.RData")
 quit(save = "no")

@@ -67,7 +67,8 @@ Variable_distribution <- function(List_of_dataframes, density_or_tally, variable
 ##############################################
 
 # Total coverage calculation, convert to dataframe
-Covs_grl_all_df = lapply(covs_grl, function(x) data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov, cpg_context_nnncgnnn = x$cpg_context_nnncgnnn))
+Covs_grl_all_df = lapply(covs_grl, function(x) data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov, cpg_context_nnncgnnn = x$cpg_context_nnncgnnn,
+                                                            evenness = x$evenness, abs_delta_meth_pct = x$abs_delta_meth_pct))
 rm(covs_grl)
 
 # Subset N (coverage) <= 100
@@ -126,7 +127,8 @@ Covs_grl_all_df_tally_subsample = Variable_distribution(Covs_grl_all_df_subset, 
 
 # Convert to granges list for stats analysis.
 covs_grl_subsample = lapply(Covs_grl_all_df_subset, function(x) GRanges(seqnames = x$chr, ranges=IRanges(start = x$pos, end = (x$pos + 1)), 
-                            meth_cov = x$meth_cov, unmeth_cov = x$unmeth_cov, cpg_context_nnncgnnn = x$cpg_context_nnncgnnn))
+                            meth_cov = x$meth_cov, unmeth_cov = x$unmeth_cov, cpg_context_nnncgnnn = x$cpg_context_nnncgnnn,
+                            evenness = x$evenness, abs_delta_meth_pct = x$abs_delta_meth_pct))
 
 covs_grl_subsample = do.call("GRangesList", covs_grl_subsample)
 

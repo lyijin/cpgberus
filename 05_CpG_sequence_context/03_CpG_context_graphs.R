@@ -5,6 +5,9 @@
 # Graphs include correlations and motifs of significant CpGs comparing 
 # EM-Seq to WGBS (with and without smoothing). In addition, GC percentage and
 # coverage are explored to see whether this affects significant CpG calls.
+# GC percentage calculations are not based off Yi Jin's python script. By default
+# the GC percentage is 3 nucleotides backward and 4 nucleotides forward from a C position,
+# which is a 8 nucleotide motif region.
 
 #####  Dependencies  #####
 ##########################
@@ -232,3 +235,5 @@ Process_and_plot(Covs_grl_all_bsseq_list_stats_subsample, Covs_grl_all_bsseq_sub
 
 # Pre process and plot not smoothed significant subsampled CpGs between EM-Seq and WGBS
 Process_and_plot(Covs_grl_all_bsseq_list_stats_no_smooth_subsample, Covs_grl_all_bsseq_subsample, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Not_smoothed_significant_CpGs_subsample", "Not_smoothed_motifs_subsample")
+
+quit(save = "no")
