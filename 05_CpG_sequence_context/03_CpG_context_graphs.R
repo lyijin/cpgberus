@@ -225,15 +225,15 @@ Process_and_plot <- function(Stats_list_DMLtest, Bsseq_object_DMLtest, Sample_gr
 ##################################################################
 
 # Pre process and plot smoothed significant CpGs between EM-Seq and WGBS
-Process_and_plot(Covs_grl_all_bsseq_list_stats, Covs_grl_all_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Smoothed_significant_CpGs", "Smoothed_motifs")
+temp = Process_and_plot(Covs_grl_all_bsseq_list_stats, Covs_grl_all_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Smoothed_significant_CpGs", "Smoothed_motifs")
 
 # Pre process and plot not smoothed significant CpGs between EM-Seq and WGBS
-Process_and_plot(Covs_grl_all_bsseq_list_stats_no_smooth, Covs_grl_all_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Not_smoothed_significant_CpGs", "Not_smoothed_motifs")
+temp = Process_and_plot(Covs_grl_all_bsseq_list_stats_no_smooth, Covs_grl_all_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Not_smoothed_significant_CpGs", "Not_smoothed_motifs")
 
 # Pre process and plot smoothed significant subsampled CpGs between EM-Seq and WGBS
-Process_and_plot(Covs_grl_all_bsseq_list_stats_subsample, Covs_grl_all_bsseq_subsample, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Smoothed_significant_CpGs_subsample", "Smoothed_motifs_subsample")
+temp = Process_and_plot(Covs_grl_all_bsseq_list_stats_subsample, Covs_grl_all_bsseq_subsample, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Smoothed_significant_CpGs_subsample", "Smoothed_motifs_subsample")
 
 # Pre process and plot not smoothed significant subsampled CpGs between EM-Seq and WGBS
-Process_and_plot(Covs_grl_all_bsseq_list_stats_no_smooth_subsample, Covs_grl_all_bsseq_subsample, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Not_smoothed_significant_CpGs_subsample", "Not_smoothed_motifs_subsample")
+temp = Process_and_plot(Covs_grl_all_bsseq_list_stats_no_smooth_subsample, Covs_grl_all_bsseq_subsample, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Not_smoothed_significant_CpGs_subsample", "Not_smoothed_motifs_subsample")
 
 quit(save = "no")
