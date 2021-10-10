@@ -1,7 +1,7 @@
 #####  Script information  #####
 ################################
 
-# This code graphs the statisical analysis produced from 01_CpG_context_stats.R
+# This code graphs the statisical analysis produced from 02_CpG_context_stats.R
 # Graphs include correlations and motifs of significant CpGs comparing 
 # EM-Seq to WGBS (with and without smoothing). In addition, GC percentage and
 # coverage are explored to see whether this affects significant CpG calls.
@@ -23,6 +23,7 @@ library(bsseq)
 
 load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats_not_subsampled.RData")
 load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats_subsampled.RData")
+load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats_common.RData")
 
 #####  Functions  #####
 #######################
@@ -165,14 +166,13 @@ Plot_cor_motif <- function(Granges_object, file_name) {
 # # Convert flattened dataframe of DSS stats to a granges with metadata
 #######################################################################
 
-Convert_df_to_grange <- function(Granges_object, bsseq_object, Sample_group_1, Sample_group_2) {
+Convert_df_to_grange <- function(Dataframe_object, bsseq_object, Sample_group_1, Sample_group_2) {
 
     # Extract significant regions and generate granges object with sequences / GC percentage
-    Covs_grl_stats_flatten_sig = Granges_object[(Granges_object$fdr <= 0.05), ]
+    Covs_grl_stats_flatten_sig = Dataframe_object[(Dataframe_object$fdr <= 0.05), ]
     Covs_grl_stats_flatten_sig = Extract_motif_calculate_GC(Covs_grl_stats_flatten_sig, nucleotides_backward = 3, nucleotides_forward = 4)
 
     # Extract coverages from bbseq object and add to granges object metadata
-                    #### Note: Have to QC to check if coverage agrees with Jason's original granges object ####
     raw_coverages_sig = getCoverage(bsseq_object, regions = Covs_grl_stats_flatten_sig)
     raw_coverages_sig = data.frame(do.call("rbind", raw_coverages_sig))
     colnames(raw_coverages_sig) <- sampleNames(bsseq_object)
@@ -235,5 +235,11 @@ temp = Process_and_plot(Covs_grl_all_bsseq_list_stats_subsample, Covs_grl_all_bs
 
 # Pre process and plot not smoothed significant subsampled CpGs between EM-Seq and WGBS
 temp = Process_and_plot(Covs_grl_all_bsseq_list_stats_no_smooth_subsample, Covs_grl_all_bsseq_subsample, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Not_smoothed_significant_CpGs_subsample", "Not_smoothed_motifs_subsample")
+
+# Pre process and plot smoothed significant common CpGs between EM-Seq and WGBS
+temp = Process_and_plot(Covs_grl_common_bsseq_list_stats, Covs_grl_common_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Smoothed_significant_CpGs_common", "Smoothed_motifs_common")
+
+# Pre process and plot not smoothed significant common CpGs between EM-Seq and WGBS
+temp = Process_and_plot(Covs_grl_common_bsseq_list_stats_no_smooth, Covs_grl_common_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Not_smoothed_significant_CpGs_common", "Not_smoothed_motifs_common")
 
 quit(save = "no")

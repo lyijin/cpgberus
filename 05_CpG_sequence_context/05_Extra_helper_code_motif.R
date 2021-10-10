@@ -150,7 +150,16 @@ Motif_plot(Plot_data_all, "Multiply_all", names(Plot_data_all), TRUE)
 
 rm(covs_grl)
 
+# Code to remove rows with 0 in list of dataframe process by Merge_CpGs function
+Covs_grl_all_df_common_3 = sapply(names(Covs_grl_all_df_common), function(x) which(Covs_grl_all_df_common[[x]]$N == 0),
+                        simplify = FALSE, USE.NAMES = TRUE)
+                        
+rows_to_remove = unique(unlist(Covs_grl_all_df_common_3))
 
+Covs_grl_all_df_common_3 = sapply(names(Covs_grl_all_df_common), function(x) Covs_grl_all_df_common[[x]][-rows_to_remove, ],
+                        simplify = FALSE, USE.NAMES = TRUE)
+                        
+                        
 # counter = 0
 # Plot_data_meth_common <- lapply(Subset_covs_grl_meth_common, Motif_frequency_table, length(Subset_covs_grl_meth_common), TRUE)
 # Motif_plot(Plot_data_meth_common, "Multiply_Meth_common", names(Plot_data_meth_common), TRUE)
