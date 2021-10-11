@@ -32,7 +32,7 @@ Variable_distribution <- function(List_of_dataframes, density_or_tally, variable
     if (density_or_tally == "Density") {
         # Calculate density, then dataframe of x and y density coord + name
         print("Calculating densities")
-        temp_df = lapply(List_of_dataframes, function(x) density(x[, variable_column_name], adjust = 5))
+        temp_df = lapply(List_of_dataframes, function(x) density(x[, variable_column_name]))
         temp_df = lapply(n, function(n) data.frame(Sample_name = n, x_values = temp_df[[n]][["x"]], y_values = temp_df[[n]][["y"]]))
     } else if (density_or_tally == "Tally") {
         # Calculate tally density, convert factor to numeric, then dataframe of x and y density coord + name
