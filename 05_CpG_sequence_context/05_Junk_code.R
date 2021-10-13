@@ -483,3 +483,32 @@ Covs_grl_all_df_common_3 = sapply(names(Covs_grl_all_df_common), function(x) Cov
 
 # #save(Covs_grl_all_df_tally_abs_delta_group, Covs_grl_all_df_tally_group, Covs_grl_all_df_tally_abs_delta_sample, Covs_grl_all_df_tally_sample, file ="Strand_bias.RData")
 # quit(save = "no")
+
+
+#############################################################
+# # Filter matrix row to remove NA based on cutoff for each group.
+# # Cutoff means count of NA > that you want to discard.
+#############################################################
+
+Filter_matrix_NA <- function(Matrix_input, group_1, group_2, group_1_cutoff, group_2_cutoff) {
+
+    # Count NA per row for each group
+    Row_NA_count_1 = rowSums(is.na((Matrix_input[, group_1])))
+    Row_NA_count_2 = rowSums(is.na((Matrix_input[, group_2])))
+    
+    # Remove rows containing NA's > cutoff
+    Matrix_input = Matrix_input[!(Row_NA_count_1 > group_1_cutoff | Row_NA_count_2 > group_2_cutoff), ]
+    
+    return(Matrix_input)
+}
+
+
+################################################################################
+# # Function to to filter granges list object for common CpGs
+################################################################################
+
+Filter_common_CpGs <- function(Granges_list_object) {
+    Common_intersect_regions = Reduce(intersect, Granges_list_object)
+    Subset_covs_grl_common = endoapply(Granges_list_object, subsetByOverlaps, Common_intersect_regions)
+    return(Subset_covs_grl_common)
+}

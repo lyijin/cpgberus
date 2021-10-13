@@ -31,6 +31,11 @@ load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_s
 #######################################################################
 # # Funtion to plot extract motifs and calculcate CG percentage from
 # # a dataframe of C positions
+#
+# The input dataframe needs to be the DMLtest results from 
+# 02_CpG_context_stats.R script because column names are hardcoded.
+#
+# Todo: Line 50, make this cleaner, something like !(colnames %in%).
 #######################################################################
 
 Extract_motif_calculate_GC <- function(Input_dataframe, nucleotides_backward, nucleotides_forward) {
@@ -42,7 +47,7 @@ Extract_motif_calculate_GC <- function(Input_dataframe, nucleotides_backward, nu
     Final_dataframe_grange = GRanges(seqnames = Input_dataframe$chr,
         IRanges(start = Input_dataframe$pos, end = (Input_dataframe$pos + 1)))
         
-    mcols(Final_dataframe_grange) <- Input_dataframe[c("mu1", "mu2", "diff", "diff.se","stat", "phi1", "phi2", "pval", "fdr")]
+    mcols(Final_dataframe_grange) <- Input_dataframe[c("mu1", "mu2", "diff", "diff.se", "stat", "phi1", "phi2", "pval", "fdr")]
     Final_dataframe_grange$cpg_context_nnncgnnn <- getSeq(BSgenome.Hsapiens.UCSC.hg38, Motif_grange)
     Final_dataframe_grange$GC_percentage <- as.numeric(letterFrequency(Final_dataframe_grange$cpg_context_nnncgnnn, letters = "GC", as.prob = TRUE))
     Final_dataframe_grange$High_low <- Final_dataframe_grange$diff
@@ -177,8 +182,8 @@ Convert_df_to_grange <- function(Dataframe_object, bsseq_object, Sample_group_1,
     raw_coverages_sig = data.frame(do.call("rbind", raw_coverages_sig))
     colnames(raw_coverages_sig) <- sampleNames(bsseq_object)
 
-    Covs_grl_stats_flatten_sig$cov_raw_average_m1 <- as.integer(ceiling(rowMeans(raw_coverages_sig[Sample_group_1])))
-    Covs_grl_stats_flatten_sig$cov_raw_average_m2 <- as.integer(ceiling(rowMeans(raw_coverages_sig[Sample_group_2])))
+    Covs_grl_stats_flatten_sig$cov_raw_average_m1 <- as.integer(ceiling(rowMeans(raw_coverages_sig[Sample_group_1], na.rm = TRUE)))
+    Covs_grl_stats_flatten_sig$cov_raw_average_m2 <- as.integer(ceiling(rowMeans(raw_coverages_sig[Sample_group_2], na.rm = TRUE)))
 
     Covs_grl_stats_flatten_sig$cov_raw_average_m1[(Covs_grl_stats_flatten_sig$cov_raw_average_m1 == 0)] <- NA
     Covs_grl_stats_flatten_sig$cov_raw_average_m2[(Covs_grl_stats_flatten_sig$cov_raw_average_m2 == 0)] <- NA
