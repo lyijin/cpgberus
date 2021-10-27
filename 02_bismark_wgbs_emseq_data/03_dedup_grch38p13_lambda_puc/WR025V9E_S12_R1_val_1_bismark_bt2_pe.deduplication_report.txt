@@ -1,5 +1,5 @@
 
-Total number of alignments analysed in 02_map_vs_hg38_lambda_puc/WR025V9E_S12_R1_val_1_bismark_bt2_pe.bam:	166942518
+Total number of alignments analysed in 02_map_vs_grch38p13_lambda_puc/WR025V9E_S12_R1_val_1_bismark_bt2_pe.bam:	166942518
 Total number duplicated alignments removed:	12367839 (7.41%)
 Duplicated alignments were found at:	11494316 different position(s)
 
