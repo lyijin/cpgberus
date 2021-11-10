@@ -32,7 +32,7 @@ Variable_distribution <- function(List_of_dataframes, density_or_tally, variable
     if (density_or_tally == "Density") {
         # Calculate density, then dataframe of x and y density coord + name
         print("Calculating densities")
-        temp_df = lapply(List_of_dataframes, function(x) density(x[, variable_column_name], adjust = 5))
+        temp_df = lapply(List_of_dataframes, function(x) density(x[, variable_column_name], na.rm = TRUE))
         temp_df = lapply(n, function(n) data.frame(Sample_name = n, x_values = temp_df[[n]][["x"]], y_values = temp_df[[n]][["y"]]))
     } else if (density_or_tally == "Tally") {
         # Calculate tally density, convert factor to numeric, then dataframe of x and y density coord + name
@@ -95,6 +95,9 @@ set.seed(1)
 Covs_grl_all_df_subset[["WR025V9E"]]["Subsample_coverage"] = rbinom(nrow(Covs_grl_all_df_subset[["WR025V9E"]]), Covs_grl_all_df_subset[["WR025V9E"]][, "N"], 0.75)
 
 # Remove subsample_coverage = 0 and add metadata required for stats script.
+# After talking to Jason, it is probably more appropriate to subsample meth and unmeth. Implement this option in the next version.
+# In addition, the gold standard would be to subsample raw FASTQ files, then process these.
+# Most likely, I will just use the common CpGs as the final matrix for analysis.
 Covs_grl_all_df_subset = lapply(Covs_grl_all_df_subset, function(x) x[x[, "Subsample_coverage"] > 0, ])
 Covs_grl_all_df_subset = lapply(Covs_grl_all_df_subset, function(x) cbind(x, data.frame(meth_cov = x[, "X"], unmeth_cov = (x[, "N"] - x[, "X"]))))
                                     

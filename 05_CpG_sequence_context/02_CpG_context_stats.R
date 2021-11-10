@@ -21,15 +21,17 @@ load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Data_co
 #######################
 
 ################################################################################
-# # Function to merge CpGs which exist between all samples, fill empty with 0
+# # Function to merge CpGs which exist between all samples, fill empty with 0.
+# 
+# Needs chr, pos, N and X. N is total coverage, X is meth.
 ################################################################################
 
-Merge_CpGs <- function(Granges_list_object) {
+Merge_CpGs <- function(Dataframe_list_object) {
 
     # Find existing chromosomes
     number_of_chromosomes = list()
     
-    for (data_frame in Granges_list_object) {
+    for (data_frame in Dataframe_list_object) {
         temp_list = as.character(unique(data_frame$chr))
         number_of_chromosomes = unlist(unique(c(number_of_chromosomes, temp_list)))
     }
@@ -40,7 +42,7 @@ Merge_CpGs <- function(Granges_list_object) {
     for (chr_num in number_of_chromosomes) {
         temp_pos = list()
         
-        for (data_frame in Granges_list_object) {
+        for (data_frame in Dataframe_list_object) {
             chr_num_pos = data_frame[(data_frame$chr == chr_num), "pos"]
             temp_pos = unique(unlist(c(temp_pos, chr_num_pos)))
         }
@@ -52,10 +54,12 @@ Merge_CpGs <- function(Granges_list_object) {
     # Compare sample CpGs to existing CpGs and fill differences with 0    
     final_dataframe_list = list()
     
-    for (dataframe_index in seq(length(Granges_list_object))) {
-        data_frame = Granges_list_object[[dataframe_index]]
-        data_frame_name = names(Granges_list_object[dataframe_index])
-        temp_df = data.frame(chr = factor(), pos = integer(), N = integer(), X = integer())
+    for (dataframe_index in seq(length(Dataframe_list_object))) {
+        data_frame = Dataframe_list_object[[dataframe_index]]
+        data_frame_name = names(Dataframe_list_object[dataframe_index])
+        
+        temp_df = data.frame(matrix(ncol = ncol(data_frame), nrow = 0))
+        colnames(temp_df) = colnames(data_frame)
 
         for (chr_num in number_of_chromosomes) {
             chr_num_pos = data_frame[(data_frame$chr == chr_num), "pos"]
@@ -63,19 +67,36 @@ Merge_CpGs <- function(Granges_list_object) {
             chr_num_pos_missing = chr_num_pos_ref[!(chr_num_pos_ref %in% chr_num_pos)]
             
             if (length(chr_num_pos_missing) != 0) {
-                temp_df = rbind(temp_df, data.frame(chr = factor(chr_num), pos = chr_num_pos_missing, N = 0, X = 0))
+                temp_df_2 = data.frame(matrix(ncol = ncol(data_frame), nrow = 0))
+                colnames(temp_df_2) = colnames(data_frame)
+                
+                temp_df_2[1:length(chr_num_pos_missing), "chr"] = chr_num
+                temp_df_2[1:length(chr_num_pos_missing), "pos"] = chr_num_pos_missing
+                temp_df_2[1:length(chr_num_pos_missing), "N"] = 0
+                temp_df_2[1:length(chr_num_pos_missing), "X"] = 0
+                temp_df = rbind(temp_df, temp_df_2)
             }
         }
         
         temp_df = rbind(data_frame, temp_df)
         temp_df = temp_df[order(temp_df$chr, temp_df$pos), ]
         rownames(temp_df) <- seq(1:nrow(temp_df))
+        temp_df$chr = factor(temp_df$chr)
         final_dataframe_list[[data_frame_name]] <- temp_df
-        print(paste0(data_frame_name, " data is finished merging: ", dataframe_index, " / ", length(Granges_list_object)))
+        print(paste0(data_frame_name, " data is finished merging: ", dataframe_index, " / ", length(Dataframe_list_object)))
     }
     return(final_dataframe_list)
 }
 
+################################################################################
+# # Function to to filter granges list object for common CpGs
+################################################################################
+
+Filter_common_CpGs <- function(Granges_list_object) {
+    Common_intersect_regions = Reduce(intersect, Granges_list_object)
+    Subset_covs_grl_common = endoapply(Granges_list_object, subsetByOverlaps, Common_intersect_regions)
+    return(Subset_covs_grl_common)
+}
 
 ####################################################################
 # # Function here to create BS object
@@ -217,5 +238,31 @@ save(Covs_grl_all_bsseq, Covs_grl_all_bsseq_list_stats, Covs_grl_all_bsseq_list_
 rm(Covs_grl_all_bsseq)
 rm(Covs_grl_all_bsseq_list_stats)
 rm(Covs_grl_all_bsseq_list_stats_no_smooth)
+
+
+#####  Analysis for unfiltered coverage and common CpGs #####
+#############################################################
+
+# Find all CpGs which exist in all samples, merge and convert to bbseq object
+Covs_grl_all_df = Filter_common_CpGs(covs_grl)
+Covs_grl_all_df = lapply(Covs_grl_all_df, function(x) data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov))
+Covs_grl_common_bsseq = Create_BS_object(Covs_grl_all_df)
+rm(covs_grl)
+rm(Covs_grl_all_df)
+
+# Smooth bbseq object per chromosome, return a list of bbseq smoothed objects.
+# Covs_grl_all_bsseq_list_smooth = Create_smooth_fit_list_per_chr(Covs_grl_common_bsseq, 500, 5)
+
+# Perform stats using DMLtest from DSS package
+sample_group_1 = c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E")
+sample_group_2 = c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W")
+Covs_grl_common_bsseq_list_stats = Create_stat_list_per_chr(Covs_grl_common_bsseq, smoothing_bool = TRUE, smoothing_span = 500, number_of_workers = 8, group_1 = sample_group_1, group_2 = sample_group_2)
+Covs_grl_common_bsseq_list_stats_no_smooth = Create_stat_list_per_chr(Covs_grl_common_bsseq, smoothing_bool = FALSE, number_of_workers = 8, group_1 = sample_group_1, group_2 = sample_group_2)
+
+# Save workspace
+save(Covs_grl_common_bsseq, Covs_grl_common_bsseq_list_stats, Covs_grl_common_bsseq_list_stats_no_smooth, file = "Motif_stats_common.RData")
+rm(Covs_grl_common_bsseq)
+rm(Covs_grl_common_bsseq_list_stats)
+rm(Covs_grl_common_bsseq_list_stats_no_smooth)
 
 quit(save = "no")
