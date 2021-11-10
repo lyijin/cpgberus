@@ -49,11 +49,11 @@ for(f in rarefied_files) {
 rm(cov_gr, this_cov, sample_name)
 
 # Form a GRangesList object
-Not_rarefied_covs_grl = do.call("GRangesList", covs)
+Rarefied_covs_grl = do.call("GRangesList", covs)
 
-save(Not_rarefied_covs_grl, file=file.path(path_cpgberus_covs, "Rarefied_grch38p13_combined_covs_grl.RData"))
+save(Rarefied_covs_grl, file=file.path(path_cpgberus_covs, "Rarefied_grch38p13_combined_covs_grl.RData"))
 
-rm(Not_rarefied_covs_grl)
+rm(Rarefied_covs_grl)
 
 
 #####  Create matrix for not rarefied data #####
@@ -80,8 +80,8 @@ for(f in not_rarefied_files) {
 rm(cov_gr, this_cov, sample_name)
 
 # Form a GRangesList object
-Rarefied_covs_grl = do.call("GRangesList", covs)
+Not_rarefied_covs_grl = do.call("GRangesList", covs)
 
-save(Rarefied_covs_grl, file=file.path(path_cpgberus_covs, "Not_rarefied_grch38p13_combined_covs_grl.RData"))
+save(Not_rarefied_covs_grl, file=file.path(path_cpgberus_covs, "Not_rarefied_grch38p13_combined_covs_grl.RData"))
 
 q("no")
