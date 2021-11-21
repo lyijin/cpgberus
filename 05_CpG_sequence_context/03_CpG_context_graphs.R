@@ -21,11 +21,9 @@ library(bsseq)
 #####  Load data  #####
 #######################
 
-# Load data just before analysis below and remove objects after to save on memory
+path_to_cpgerus = "/datasets/work/hb-stopwatch/work/cpgberus"
 
-# load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats_not_subsampled.RData")
-# load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats_subsampled.RData")
-# load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats_common.RData")
+# Load data just before analysis below and remove objects after to save on memory
 
 #####  Functions  #####
 #######################
@@ -228,48 +226,130 @@ Process_and_plot <- function(Stats_list_DMLtest, Bsseq_object_DMLtest, Sample_gr
     return(Covs_grl_stats)
 }
 
-#####  Analysis for significant CpGs between EM-Seq and WGBS #####
-##################################################################
 
-dir.create("All_existing_CpGs_GC_context")
-load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats_not_subsampled.RData")
-# Pre process and plot smoothed significant CpGs between EM-Seq and WGBS
-temp = Process_and_plot(Covs_grl_all_bsseq_list_stats, Covs_grl_all_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "All_existing_CpGs_GC_context/Smoothed_significant_CpGs", "All_existing_CpGs_GC_context/Smoothed_motifs")
-rm(temp)
-rm(Covs_grl_all_bsseq_list_stats)
+#####  Analysis for *common* significant CpGs between EM-Seq and WGBS (not rarefied) #####
+##########################################################################################
 
-# Pre process and plot not smoothed significant CpGs between EM-Seq and WGBS
-temp = Process_and_plot(Covs_grl_all_bsseq_list_stats_no_smooth, Covs_grl_all_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "All_existing_CpGs_GC_context/Unsmoothed_significant_CpGs", "All_existing_CpGs_GC_context/Unsmoothed_motifs")
-rm(temp)
-rm(Covs_grl_all_bsseq_list_stats_no_smooth)
-rm(Covs_grl_all_bsseq)
+full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/03_outputs/Not_rarefied_common_CpGs_GC_context")
+dir.create(full_path, recursive = TRUE)
 
-
-dir.create("Subsample_CpGs_GC_context")
-load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats_subsampled.RData")
-# Pre process and plot smoothed significant subsampled CpGs between EM-Seq and WGBS
-temp = Process_and_plot(Covs_grl_all_bsseq_list_stats_subsample, Covs_grl_all_bsseq_subsample, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Subsample_CpGs_GC_context/Smoothed_significant_CpGs_subsample", "Subsample_CpGs_GC_context/Smoothed_motifs_subsample")
-rm(temp)
-rm(Covs_grl_all_bsseq_list_stats_subsample)
-
-# Pre process and plot not smoothed significant subsampled CpGs between EM-Seq and WGBS
-temp = Process_and_plot(Covs_grl_all_bsseq_list_stats_no_smooth_subsample, Covs_grl_all_bsseq_subsample, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Subsample_CpGs_GC_context/Unsmoothed_significant_CpGs_subsample", "Subsample_CpGs_GC_context/Unsmoothed_motifs_subsample")
-rm(temp)
-rm(Covs_grl_all_bsseq_list_stats_no_smooth_subsample)
-rm(Covs_grl_all_bsseq_subsample)
-
-
-dir.create("Common_CpGs_GC_context")
-load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats_common.RData")
+load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Not_rarefied_CpG_stats_common.RData"))
 # Pre process and plot smoothed significant common CpGs between EM-Seq and WGBS
-temp = Process_and_plot(Covs_grl_common_bsseq_list_stats, Covs_grl_common_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Common_CpGs_GC_context/Smoothed_significant_CpGs_common", "Common_CpGs_GC_context/Smoothed_motifs_common")
+temp = Process_and_plot(Not_rarefied_common_stats_smooth, Not_rarefied_common_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
+                        file.path(full_path, "Smoothed_significant_CpGs_common"), file.path(full_path, "Smoothed_motifs_common"))
 rm(temp)
-rm(Covs_grl_common_bsseq_list_stats)
+rm(Not_rarefied_common_stats_smooth)
 
 # Pre process and plot not smoothed significant common CpGs between EM-Seq and WGBS
-temp = Process_and_plot(Covs_grl_common_bsseq_list_stats_no_smooth, Covs_grl_common_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "Common_CpGs_GC_context/Unsmoothed_significant_CpGs_common", "Common_CpGs_GC_context/Unsmoothed_motifs_common")
+temp = Process_and_plot(Not_rarefied_common_stats_no_smooth, Not_rarefied_common_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
+                        file.path(full_path, "Unsmoothed_significant_CpGs_common"), file.path(full_path, "Unsmoothed_motifs_common"))
 rm(temp)
-rm(Covs_grl_common_bsseq_list_stats_no_smooth)
-rm(Covs_grl_common_bsseq)
+rm(Not_rarefied_common_stats_no_smooth)
+rm(Not_rarefied_common_bsseq)
+
+
+#####  Analysis for *common* significant CpGs between EM-Seq and WGBS (Rarefied) #####
+######################################################################################
+
+full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/03_outputs/Rarefied_common_CpGs_GC_context")
+dir.create(full_path, recursive = TRUE)
+
+load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Rarefied_CpG_stats_common.RData"))
+# Pre process and plot smoothed significant common CpGs between EM-Seq and WGBS
+temp = Process_and_plot(Rarefied_common_stats_smooth, Rarefied_common_bsseq, c("WR025V1ER", "WR025V9ER", "WR069V1ER", "WR069V9ER"), c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR"), 
+                        file.path(full_path, "Smoothed_significant_CpGs_common"), file.path(full_path, "Smoothed_motifs_common"))
+rm(temp)
+rm(Rarefied_common_stats_smooth)
+
+# Pre process and plot not smoothed significant common CpGs between EM-Seq and WGBS
+temp = Process_and_plot(Rarefied_common_stats_no_smooth, Rarefied_common_bsseq, c("WR025V1ER", "WR025V9ER", "WR069V1ER", "WR069V9ER"), c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR"), 
+                        file.path(full_path, "Unsmoothed_significant_CpGs_common"), file.path(full_path, "Unsmoothed_motifs_common"))
+rm(temp)
+rm(Rarefied_common_stats_no_smooth)
+rm(Rarefied_common_bsseq)
+
+
+# #####  Analysis for *common* significant CpGs between EM-Seq and WGBS (Original) #####
+# ######################################################################################
+
+# full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/03_outputs/Original_common_CpGs_GC_context")
+# dir.create(full_path, recursive = TRUE)
+
+# load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Original_CpG_stats_common.RData"))
+# # Pre process and plot smoothed significant common CpGs between EM-Seq and WGBS
+# temp = Process_and_plot(Original_common_stats_smooth, Original_common_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
+                        # file.path(full_path, "Smoothed_significant_CpGs_common"), file.path(full_path, "Smoothed_motifs_common"))
+# rm(temp)
+# rm(Original_common_stats_smooth)
+
+# # Pre process and plot not smoothed significant common CpGs between EM-Seq and WGBS
+# temp = Process_and_plot(Original_common_stats_no_smooth, Original_common_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
+                        # file.path(full_path, "Unsmoothed_significant_CpGs_common"), file.path(full_path, "Unsmoothed_motifs_common"))
+# rm(temp)
+# rm(Original_common_stats_no_smooth)
+# rm(Original_common_bsseq)
+
+
+#####  Analysis for *existing* significant CpGs between EM-Seq and WGBS (not rarefied) #####
+############################################################################################
+
+full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/03_outputs/Not_rarefied_existing_CpGs_GC_context")
+dir.create(full_path, recursive = TRUE)
+
+load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Not_rarefied_CpG_stats_existing.RData"))
+# Pre process and plot smoothed significant common CpGs between EM-Seq and WGBS
+temp = Process_and_plot(Not_rarefied_existing_stats_smooth, Not_rarefied_existing_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
+                        file.path(full_path, "Smoothed_significant_CpGs_existing"), file.path(full_path, "Smoothed_motifs_existing"))
+rm(temp)
+rm(Not_rarefied_existing_stats_smooth)
+
+# Pre process and plot not smoothed significant common CpGs between EM-Seq and WGBS
+temp = Process_and_plot(Not_rarefied_existing_stats_no_smooth, Not_rarefied_existing_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
+                        file.path(full_path, "Unsmoothed_significant_CpGs_existing"), file.path(full_path, "Unsmoothed_motifs_existing"))
+rm(temp)
+rm(Not_rarefied_existing_stats_no_smooth)
+rm(Not_rarefied_existing_bsseq)
+
+
+#####  Analysis for *existing* significant CpGs between EM-Seq and WGBS (Rarefied) #####
+########################################################################################
+
+full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/03_outputs/Rarefied_existing_CpGs_GC_context")
+dir.create(full_path, recursive = TRUE)
+
+load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Rarefied_CpG_stats_existing.RData"))
+# Pre process and plot smoothed significant common CpGs between EM-Seq and WGBS
+temp = Process_and_plot(Rarefied_existing_stats_smooth, Rarefied_existing_bsseq, c("WR025V1ER", "WR025V9ER", "WR069V1ER", "WR069V9ER"), c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR"), 
+                        file.path(full_path, "Smoothed_significant_CpGs_existing"), file.path(full_path, "Smoothed_motifs_existing"))
+rm(temp)
+rm(Rarefied_existing_stats_smooth)
+
+# Pre process and plot not smoothed significant common CpGs between EM-Seq and WGBS
+temp = Process_and_plot(Rarefied_existing_stats_no_smooth, Rarefied_existing_bsseq, c("WR025V1ER", "WR025V9ER", "WR069V1ER", "WR069V9ER"), c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR"), 
+                        file.path(full_path, "Unsmoothed_significant_CpGs_existing"), file.path(full_path, "Unsmoothed_motifs_existing"))
+rm(temp)
+rm(Rarefied_existing_stats_no_smooth)
+rm(Rarefied_existing_bsseq)
+
+
+#####  Analysis for *existing* significant CpGs between EM-Seq and WGBS (Original) #####
+########################################################################################
+
+full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/03_outputs/Original_existing_CpGs_GC_context")
+dir.create(full_path, recursive = TRUE)
+
+load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Original_CpG_stats_existing.RData"))
+# Pre process and plot smoothed significant common CpGs between EM-Seq and WGBS
+temp = Process_and_plot(Original_existing_stats_smooth, Original_existing_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
+                        file.path(full_path, "Smoothed_significant_CpGs_existing"), file.path(full_path, "Smoothed_motifs_existing"))
+rm(temp)
+rm(Original_existing_stats_smooth)
+
+# Pre process and plot not smoothed significant common CpGs between EM-Seq and WGBS
+temp = Process_and_plot(Original_existing_stats_no_smooth, Original_existing_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
+                        file.path(full_path, "Unsmoothed_significant_CpGs_existing"), file.path(full_path, "Unsmoothed_motifs_existing"))
+rm(temp)
+rm(Original_existing_stats_no_smooth)
+rm(Original_existing_bsseq)
 
 quit(save = "no")

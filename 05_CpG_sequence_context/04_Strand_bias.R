@@ -9,7 +9,7 @@
 #
 # Also, the mean beta calculated by the DSS package (mu1 and mu2) differs
 # from manual mean beta calculations. Reading the raw code, there seems to be a small 
-# constant added to "adding a small constant could bring trouble when there's no coverage!!!".
+# constant added from documentation: "adding a small constant could bring trouble when there's no coverage!!!".
 # This is why the graphs are different between manual and DSS calculated scatterplots for beta.
 
 #####  Dependencies  #####
@@ -26,9 +26,18 @@ library(BSgenome.Hsapiens.UCSC.hg38)
 #####  Load data  #####
 #######################
 
-load("/scratch1/gua020/CpGberus_data/grch38p13_combined_covs_grl.RData")
-load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats_common.RData")
-load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Motif_stats_not_subsampled.RData")
+path_to_cpgerus = "/datasets/work/hb-stopwatch/work/cpgberus"
+
+# Load data just before analysis below and remove objects after to save on memory
+
+# load(file.path(path_to_cpgerus, "04_parse_bismark_covs/Not_rarefied_grch38p13_combined_covs_grl.RData"))
+# load(file.path(path_to_cpgerus, "04_parse_bismark_covs/Rarefied_grch38p13_combined_covs_grl.RData"))
+# load(file.path(path_to_cpgerus, "04_parse_bismark_covs/grch38p13_combined_covs_grl.RData"))
+
+# load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Not_rarefied_CpG_stats_common.RData"))
+# load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Rarefied_CpG_stats_common.RData"))
+# load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Original_CpG_stats_common.RData"))
+# load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Original_CpG_stats_existing.RData"))
 
 #####  Functions  #####
 #######################
@@ -354,79 +363,18 @@ Filter_matrix_NA <- function(Matrix_input, group_1, group_2, group_1_cutoff, gro
     return(Matrix_input)
 }
 
-
-#####  Stand bias analysis for *common* and significant CpGs  #####
-#####  for *unsmoothed data*.                                 #####
-###################################################################
-
-dir.create("Common_CpGs_strand_bias")
-
-# Extract significant CpGs from DMLtest
-Significant_regions = sapply(names(Covs_grl_common_bsseq_list_stats_no_smooth), function(x) Covs_grl_common_bsseq_list_stats_no_smooth[[x]][Covs_grl_common_bsseq_list_stats_no_smooth[[x]]$fdr <= 0.05, ], simplify = FALSE, USE.NAMES = TRUE)
-Significant_regions = do.call("rbind", Significant_regions)
-Significant_regions = GRanges(seqnames = Significant_regions$chr, IRanges(start = Significant_regions$pos, end = (Significant_regions$pos + 1)), 
-                                mu1 = Significant_regions$mu1, mu2 = Significant_regions$mu2)
-
-# Extract significant regions from unfiltered data and append mu1 and mu2 metadata
-covs_grl_sig_common = lapply(covs_grl, mergeByOverlaps, Significant_regions)
-covs_grl_sig_common = lapply(covs_grl_sig_common, function(x) {
-                                            temp = x[, 1]
-                                            values(temp) <- c(values(temp), x[c("mu1", "mu2")])
-                                            return(temp)})
-
-# Plot correlations                                            
-covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) data.frame(covs_grl_sig_common[[x]]), simplify = FALSE, USE.NAMES = TRUE)
-covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) cbind(covs_grl_sig_common[[x]], data.frame(N = covs_grl_sig_common[[x]]$meth_cov + covs_grl_sig_common[[x]]$unmeth_cov)), simplify = FALSE, USE.NAMES = TRUE)
-covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) cbind(covs_grl_sig_common[[x]], data.frame(Beta = covs_grl_sig_common[[x]]$meth_cov / covs_grl_sig_common[[x]]$N)), simplify = FALSE, USE.NAMES = TRUE)
-common_means_and_matrices = Plot_PCA_cor(covs_grl_sig_common, c("evenness", "abs_delta_meth_pct", "Beta", "N"), c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "EM-Seq", "WGBS", "Common_CpGs_strand_bias/Unsmoothed_significant_CpGs_common_strand_bias")
-
-# Plot coverage distribution
-temp_df = Variable_distribution(covs_grl_sig_common, "Tally", "N", "Common_CpGs_strand_bias/Unsmoothed_significant_CpGs_common_tally", c(-5, 3000))
-temp_df = Variable_distribution(covs_grl_sig_common, "Density", "N", "Common_CpGs_strand_bias/Unsmoothed_significant_CpGs_common_density", c(-500, 4000))
-
-# Plot complex heatmaps.
-Plot_complex_heatmap(common_means_and_matrices[[2]], "Common_CpGs_strand_bias/Unsmoothed_signficant_CpGs_common")
-
-
-#####  Stand bias analysis for *common* and significant CpGs  #####
-#####  for *smoothed data*.                                   #####
-###################################################################
-
-# Extract significant CpGs from DMLtest
-Significant_regions = sapply(names(Covs_grl_common_bsseq_list_stats), function(x) Covs_grl_common_bsseq_list_stats[[x]][Covs_grl_common_bsseq_list_stats[[x]]$fdr <= 0.05, ], simplify = FALSE, USE.NAMES = TRUE)
-Significant_regions = do.call("rbind", Significant_regions)
-Significant_regions = GRanges(seqnames = Significant_regions$chr, IRanges(start = Significant_regions$pos, end = (Significant_regions$pos + 1)), 
-                                mu1 = Significant_regions$mu1, mu2 = Significant_regions$mu2)
-
-# Extract significant regions from unfiltered data and append mu1 and mu2 metadata
-covs_grl_sig_common = lapply(covs_grl, mergeByOverlaps, Significant_regions)
-covs_grl_sig_common = lapply(covs_grl_sig_common, function(x) {
-                                            temp = x[, 1]
-                                            values(temp) <- c(values(temp), x[c("mu1", "mu2")])
-                                            return(temp)})
-
-# Plot correlations                                            
-covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) data.frame(covs_grl_sig_common[[x]]), simplify = FALSE, USE.NAMES = TRUE)
-covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) cbind(covs_grl_sig_common[[x]], data.frame(N = covs_grl_sig_common[[x]]$meth_cov + covs_grl_sig_common[[x]]$unmeth_cov)), simplify = FALSE, USE.NAMES = TRUE)
-covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) cbind(covs_grl_sig_common[[x]], data.frame(Beta = covs_grl_sig_common[[x]]$meth_cov / covs_grl_sig_common[[x]]$N)), simplify = FALSE, USE.NAMES = TRUE)
-common_means_and_matrices = Plot_PCA_cor(covs_grl_sig_common, c("evenness", "abs_delta_meth_pct", "Beta", "N"), c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "EM-Seq", "WGBS", "Common_CpGs_strand_bias/Smoothed_significant_CpGs_common_strand_bias")
-
-# Plot coverage distribution
-temp_df = Variable_distribution(covs_grl_sig_common, "Tally", "N", "Common_CpGs_strand_bias/Smoothed_significant_CpGs_common_tally", c(-5, 3000))
-temp_df = Variable_distribution(covs_grl_sig_common, "Density", "N", "Common_CpGs_strand_bias/Smoothed_significant_CpGs_common_density", c(-500, 4000))
-
-# Plot complex heatmaps.
-Plot_complex_heatmap(common_means_and_matrices[[2]], "Common_CpGs_strand_bias/Smoothed_signficant_CpGs_common")
-
-
 #####  Stand bias analysis for *all existing* and significant CpGs  #####
 #####  between samples for *unsmoothed data*. This differs from     #####
 #####  common CpG because the CpG only has to exist in one sample   #####
 #####  to be included in stats, while common CpGs has to exist in   #####
-#####  all samples to be included in stats.                         #####
+#####  all samples to be included in stats. Original data is used.  #####
 #########################################################################
 
-dir.create("All_existing_CpGs_strand_bias")
+full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/04_outputs/Original_existing_CpGs")
+load(file.path(path_to_cpgerus, "04_parse_bismark_covs/grch38p13_combined_covs_grl.RData"))
+load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Original_CpG_stats_existing.RData"))
+
+dir.create(full_path, recursive = TRUE)
 
 # Create covs_grl (a Granges list) which contains raw data for all existing CpGs which exist for each sample.
 covs_grl = lapply(covs_grl, function(x) cbind(data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov), data.frame(mcols(x))))
@@ -438,7 +386,7 @@ covs_grl = lapply(covs_grl, function(x) { temp = GRanges(seqnames = x$chr, range
 covs_grl = do.call("GRangesList", covs_grl)
 
 # Extract significant CpGs from DMLtest
-Significant_regions = sapply(names(Covs_grl_all_bsseq_list_stats_no_smooth), function(x) Covs_grl_all_bsseq_list_stats_no_smooth[[x]][Covs_grl_all_bsseq_list_stats_no_smooth[[x]]$fdr <= 0.05, ], simplify = FALSE, USE.NAMES = TRUE)
+Significant_regions = sapply(names(Original_existing_stats_no_smooth), function(x) Original_existing_stats_no_smooth[[x]][Original_existing_stats_no_smooth[[x]]$fdr <= 0.05, ], simplify = FALSE, USE.NAMES = TRUE)
 Significant_regions = do.call("rbind", Significant_regions)
 Significant_regions = GRanges(seqnames = Significant_regions$chr, IRanges(start = Significant_regions$pos, end = (Significant_regions$pos + 1)), 
                                 mu1 = Significant_regions$mu1, mu2 = Significant_regions$mu2)
@@ -454,28 +402,34 @@ covs_grl_sig_common = lapply(covs_grl_sig_common, function(x) {
 covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) data.frame(covs_grl_sig_common[[x]]), simplify = FALSE, USE.NAMES = TRUE)
 covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) cbind(covs_grl_sig_common[[x]], data.frame(N = covs_grl_sig_common[[x]]$meth_cov + covs_grl_sig_common[[x]]$unmeth_cov)), simplify = FALSE, USE.NAMES = TRUE)
 covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) cbind(covs_grl_sig_common[[x]], data.frame(Beta = covs_grl_sig_common[[x]]$meth_cov / covs_grl_sig_common[[x]]$N)), simplify = FALSE, USE.NAMES = TRUE)
-common_means_and_matrices = Plot_PCA_cor(covs_grl_sig_common, c("evenness", "abs_delta_meth_pct", "Beta", "N"), c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "EM-Seq", "WGBS", "All_existing_CpGs_strand_bias/Unsmoothed_significant_CpGs_existing_strand_bias")
+common_means_and_matrices = Plot_PCA_cor(covs_grl_sig_common, c("evenness", "abs_delta_meth_pct", "Beta", "N"), c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "EM-Seq", "WGBS", file.path(path_to_cpgerus, "Unsmoothed_significant_CpGs_PCA"))
 
 # Plot coverage distribution
-temp_df = Variable_distribution(covs_grl_sig_common, "Tally", "N", "All_existing_CpGs_strand_bias/Unsmoothed_significant_CpGs_existing_tally", c(-5, 3000))
-temp_df = Variable_distribution(covs_grl_sig_common, "Density", "N", "All_existing_CpGs_strand_bias/Unsmoothed_significant_CpGs_existing_density", c(-500, 4000))
+temp_df = Variable_distribution(covs_grl_sig_common, "Tally", "N", file.path(path_to_cpgerus, "Unsmoothed_significant_CpGs_tally"), c(-5, 3000))
+temp_df = Variable_distribution(covs_grl_sig_common, "Density", "N", file.path(path_to_cpgerus, "Unsmoothed_significant_CpGs_density"), c(-500, 4000))
 
 # Filter matrix CpGs where only one sample contains NA for EM-Seq and WGBS groups, then plot heatmaps.
 # Anything higher than this threshold will result in a clustering error when plotting heatmaps.
 common_means_and_matrices_subset = common_means_and_matrices[[2]][c("evenness", "abs_delta_meth_pct", "Beta", "N")]
 common_means_and_matrices_subset = lapply(common_means_and_matrices_subset, Filter_matrix_NA, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 1, 1)
-Plot_complex_heatmap(common_means_and_matrices_subset, "All_existing_CpGs_strand_bias/Unsmoothed_signficant_CpGs_existing")
+Plot_complex_heatmap(common_means_and_matrices_subset, file.path(path_to_cpgerus, "Unsmoothed_significant_CpGs_heatmap"))
+
+# Remove temporary covs_grl after all existing analysis.
+rm(covs_grl, Original_existing_bsseq, Original_existing_stats_smooth, Original_existing_stats_no_smooth)
 
 
-#####  Stand bias analysis for *all existing* and significant CpGs  #####
-#####  between samples for *smoothed data*. This differs from       #####
-#####  common CpG because the CpG only has to exist in one sample   #####
-#####  to be included in stats, while common CpGs has to exist in   #####
-#####  all samples to be included in stats.                         #####
-#########################################################################
+#####  Stand bias analysis for *common* and significant CpGs  #####
+#####  for *unsmoothed data*. Original data is used.          #####
+###################################################################
+
+full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/04_outputs/Original_common_CpGs")
+load(file.path(path_to_cpgerus, "04_parse_bismark_covs/grch38p13_combined_covs_grl.RData"))
+load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Original_CpG_stats_common.RData"))
+
+dir.create(full_path, recursive = TRUE)
 
 # Extract significant CpGs from DMLtest
-Significant_regions = sapply(names(Covs_grl_all_bsseq_list_stats), function(x) Covs_grl_all_bsseq_list_stats[[x]][Covs_grl_all_bsseq_list_stats[[x]]$fdr <= 0.05, ], simplify = FALSE, USE.NAMES = TRUE)
+Significant_regions = sapply(names(Original_common_stats_no_smooth), function(x) Original_common_stats_no_smooth[[x]][Original_common_stats_no_smooth[[x]]$fdr <= 0.05, ], simplify = FALSE, USE.NAMES = TRUE)
 Significant_regions = do.call("rbind", Significant_regions)
 Significant_regions = GRanges(seqnames = Significant_regions$chr, IRanges(start = Significant_regions$pos, end = (Significant_regions$pos + 1)), 
                                 mu1 = Significant_regions$mu1, mu2 = Significant_regions$mu2)
@@ -486,21 +440,53 @@ covs_grl_sig_common = lapply(covs_grl_sig_common, function(x) {
                                             temp = x[, 1]
                                             values(temp) <- c(values(temp), x[c("mu1", "mu2")])
                                             return(temp)})
-         
-# Plot correlations         
+
+# Plot correlations                                            
 covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) data.frame(covs_grl_sig_common[[x]]), simplify = FALSE, USE.NAMES = TRUE)
 covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) cbind(covs_grl_sig_common[[x]], data.frame(N = covs_grl_sig_common[[x]]$meth_cov + covs_grl_sig_common[[x]]$unmeth_cov)), simplify = FALSE, USE.NAMES = TRUE)
 covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) cbind(covs_grl_sig_common[[x]], data.frame(Beta = covs_grl_sig_common[[x]]$meth_cov / covs_grl_sig_common[[x]]$N)), simplify = FALSE, USE.NAMES = TRUE)
-common_means_and_matrices = Plot_PCA_cor(covs_grl_sig_common, c("evenness", "abs_delta_meth_pct", "Beta", "N"), c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "EM-Seq", "WGBS", "All_existing_CpGs_strand_bias/Smoothed_significant_CpGs_existing_strand_bias")
+common_means_and_matrices = Plot_PCA_cor(covs_grl_sig_common, c("evenness", "abs_delta_meth_pct", "Beta", "N"), c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "EM-Seq", "WGBS", file.path(path_to_cpgerus, "Unsmoothed_significant_CpGs_PCA"))
 
 # Plot coverage distribution
-temp_df = Variable_distribution(covs_grl_sig_common, "Tally", "N", "All_existing_CpGs_strand_bias/Smoothed_significant_CpGs_existing_tally", c(-5, 3000))
-temp_df = Variable_distribution(covs_grl_sig_common, "Density", "N", "All_existing_CpGs_strand_bias/Smoothed_significant_CpGs_existing_density", c(-500, 4000))
+temp_df = Variable_distribution(covs_grl_sig_common, "Tally", "N", file.path(path_to_cpgerus, "Unsmoothed_significant_CpGs_tally"), c(-5, 3000))
+temp_df = Variable_distribution(covs_grl_sig_common, "Density", "N", file.path(path_to_cpgerus, "Unsmoothed_significant_CpGs_density"), c(-500, 4000))
 
 # Filter matrix CpGs where only one sample contains NA for EM-Seq and WGBS groups, then plot heatmaps.
 # Anything higher than this threshold will result in a clustering error when plotting heatmaps.
 common_means_and_matrices_subset = common_means_and_matrices[[2]][c("evenness", "abs_delta_meth_pct", "Beta", "N")]
 common_means_and_matrices_subset = lapply(common_means_and_matrices_subset, Filter_matrix_NA, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 1, 1)
-Plot_complex_heatmap(common_means_and_matrices_subset, "All_existing_CpGs_strand_bias/Smoothed_signficant_CpGs_existing")
+Plot_complex_heatmap(common_means_and_matrices_subset, file.path(path_to_cpgerus, "Unsmoothed_significant_CpGs_heatmap"))
+
+rm(Original_common_bsseq, Original_common_stats_smooth, Original_common_stats_no_smooth)
+
+# #####  Stand bias analysis for *common* and significant CpGs  #####
+# #####  for *smoothed data*.                                   #####
+# ###################################################################
+
+# # Extract significant CpGs from DMLtest
+# Significant_regions = sapply(names(Covs_grl_common_bsseq_list_stats), function(x) Covs_grl_common_bsseq_list_stats[[x]][Covs_grl_common_bsseq_list_stats[[x]]$fdr <= 0.05, ], simplify = FALSE, USE.NAMES = TRUE)
+# Significant_regions = do.call("rbind", Significant_regions)
+# Significant_regions = GRanges(seqnames = Significant_regions$chr, IRanges(start = Significant_regions$pos, end = (Significant_regions$pos + 1)), 
+                                # mu1 = Significant_regions$mu1, mu2 = Significant_regions$mu2)
+
+# # Extract significant regions from unfiltered data and append mu1 and mu2 metadata
+# covs_grl_sig_common = lapply(covs_grl, mergeByOverlaps, Significant_regions)
+# covs_grl_sig_common = lapply(covs_grl_sig_common, function(x) {
+                                            # temp = x[, 1]
+                                            # values(temp) <- c(values(temp), x[c("mu1", "mu2")])
+                                            # return(temp)})
+
+# # Plot correlations                                            
+# covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) data.frame(covs_grl_sig_common[[x]]), simplify = FALSE, USE.NAMES = TRUE)
+# covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) cbind(covs_grl_sig_common[[x]], data.frame(N = covs_grl_sig_common[[x]]$meth_cov + covs_grl_sig_common[[x]]$unmeth_cov)), simplify = FALSE, USE.NAMES = TRUE)
+# covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) cbind(covs_grl_sig_common[[x]], data.frame(Beta = covs_grl_sig_common[[x]]$meth_cov / covs_grl_sig_common[[x]]$N)), simplify = FALSE, USE.NAMES = TRUE)
+# common_means_and_matrices = Plot_PCA_cor(covs_grl_sig_common, c("evenness", "abs_delta_meth_pct", "Beta", "N"), c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), "EM-Seq", "WGBS", "Common_CpGs_strand_bias/Smoothed_significant_CpGs_common_strand_bias")
+
+# # Plot coverage distribution
+# temp_df = Variable_distribution(covs_grl_sig_common, "Tally", "N", "Common_CpGs_strand_bias/Smoothed_significant_CpGs_common_tally", c(-5, 3000))
+# temp_df = Variable_distribution(covs_grl_sig_common, "Density", "N", "Common_CpGs_strand_bias/Smoothed_significant_CpGs_common_density", c(-500, 4000))
+
+# # Plot complex heatmaps.
+# Plot_complex_heatmap(common_means_and_matrices[[2]], "Common_CpGs_strand_bias/Smoothed_signficant_CpGs_common")
 
 quit(save = "no")
