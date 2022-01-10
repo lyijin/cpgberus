@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --time=48:00:00
-#SBATCH --mem=60gb
-#SBATCH --ntasks-per-node=9
+#SBATCH --time=120:00:00
+#SBATCH --mem=100gb
+#SBATCH --ntasks-per-node=17
 
-module load R/4.0.2
+module load R/4.0.5
 
 cd ${SLURM_SUBMIT_DIR}
 
