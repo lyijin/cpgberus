@@ -1,13 +1,13 @@
 #!/bin/bash
-#SBATCH --time=24:00:00
-#SBATCH --mem=60gb
-#SBATCH --ntasks-per-node=9
+#SBATCH --time=120:00:00
+#SBATCH --mem=100gb
+#SBATCH --ntasks-per-node=17
 
-module load R/4.0.2
+module load R/4.0.5
 
 cd ${SLURM_SUBMIT_DIR}
 
-R CMD BATCH 01_Coverage_and_sub_sampling.R
+R CMD BATCH 01_Coverage_analysis.R
 
 sleep 5
 

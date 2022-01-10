@@ -14,8 +14,12 @@ library(DSS)
 #####  Load data  #####
 #######################
 
-load("/scratch1/gua020/CpGberus_data/grch38p13_combined_covs_grl.RData")
-load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Data_coverage_filtered.RData")
+path_to_cpgerus = "/datasets/work/hb-stopwatch/work/cpgberus"
+
+# Load only when needed to save on memory
+# load(file.path(path_to_cpgerus, "04_parse_bismark_covs/Not_rarefied_grch38p13_combined_covs_grl.RData"))
+# load(file.path(path_to_cpgerus, "04_parse_bismark_covs/Rarefied_grch38p13_combined_covs_grl.RData"))
+# load(file.path(path_to_cpgerus, "04_parse_bismark_covs/grch38p13_combined_covs_grl.RData"))
 
 #####  Functions  #####
 #######################
@@ -24,6 +28,8 @@ load("/home/gua020/Development/CPGberus/cpgberus/05_CpG_sequence_context/Data_co
 # # Function to merge CpGs which exist between all samples, fill empty with 0.
 # 
 # Needs chr, pos, N and X. N is total coverage, X is meth.
+# Currently not used in this script. Refer to code in X_02_CpG script for
+# using merged analysis.
 ################################################################################
 
 Merge_CpGs <- function(Dataframe_list_object) {
@@ -138,6 +144,8 @@ Create_BS_object <- function(Dataframe_list_object) {
 # smoothed values, hence the creation of this function. I haven't 
 # tested whether substitution with BS smoothed values into DMLtest 
 # is correct.
+#
+# Currently not used in this script.
 ##############################################################
 
 Create_smooth_fit_list_per_chr <- function(bsseq_object, smoothing_span, number_of_workers) {
@@ -188,81 +196,177 @@ Create_stat_list_per_chr <- function(bsseq_object, smoothing_bool, smoothing_spa
     return(final_list)
 }
 
-#####  Analysis where samples with high coverage was subsampled #####
-#####################################################################
 
-# Find all CpGs which exist in all samples, merge and convert to bbseq object
-Covs_grl_all_df = lapply(covs_grl_subsample, function(x) data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov))
-Covs_grl_all_df = Merge_CpGs(Covs_grl_all_df)
-Covs_grl_all_bsseq_subsample = Create_BS_object(Covs_grl_all_df)
-rm(covs_grl_subsample)
+#####  Analysis for *common* CpGs (not rarefied) #####
+######################################################
+
+load(file.path(path_to_cpgerus, "04_parse_bismark_covs/Not_rarefied_grch38p13_combined_covs_grl.RData"))
+
+full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs")
+dir.create(full_path)
+
+# Find common CpGs which exist in all samples, merge and convert to bbseq object
+Covs_grl_all_df = Filter_common_CpGs(Not_rarefied_covs_grl)
+Covs_grl_all_df = lapply(Covs_grl_all_df, function(x) data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov))
+Not_rarefied_common_bsseq = Create_BS_object(Covs_grl_all_df)
 rm(Covs_grl_all_df)
+gc()
 
 # Smooth bbseq object per chromosome, return a list of bbseq smoothed objects.
-# Covs_grl_all_bsseq_list_smooth = Create_smooth_fit_list_per_chr(Covs_grl_all_bsseq_subsample, 500, 5)
+# Covs_grl_all_bsseq_list_smooth = Create_smooth_fit_list_per_chr(Not_rarefied_common_bsseq, 500, 5)
 
 # Perform stats using DMLtest from DSS package
 sample_group_1 = c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E")
 sample_group_2 = c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W")
-Covs_grl_all_bsseq_list_stats_subsample = Create_stat_list_per_chr(Covs_grl_all_bsseq_subsample, smoothing_bool = TRUE, smoothing_span = 500, number_of_workers = 8, group_1 = sample_group_1, group_2 = sample_group_2)
-Covs_grl_all_bsseq_list_stats_no_smooth_subsample = Create_stat_list_per_chr(Covs_grl_all_bsseq_subsample, smoothing_bool = FALSE, number_of_workers = 8, group_1 = sample_group_1, group_2 = sample_group_2)
+Not_rarefied_common_stats_smooth = Create_stat_list_per_chr(Not_rarefied_common_bsseq, smoothing_bool = TRUE, smoothing_span = 500, number_of_workers = 16, group_1 = sample_group_1, group_2 = sample_group_2)
+Not_rarefied_common_stats_no_smooth = Create_stat_list_per_chr(Not_rarefied_common_bsseq, smoothing_bool = FALSE, number_of_workers = 16, group_1 = sample_group_1, group_2 = sample_group_2)
 
 # Save workspace
-save(Covs_grl_all_bsseq_subsample, Covs_grl_all_bsseq_list_stats_subsample, Covs_grl_all_bsseq_list_stats_no_smooth_subsample, file = "Motif_stats_subsampled.RData")
-rm(Covs_grl_all_bsseq_subsample)
-rm(Covs_grl_all_bsseq_list_stats_subsample)
-rm(Covs_grl_all_bsseq_list_stats_no_smooth_subsample)
+save(Not_rarefied_common_bsseq, Not_rarefied_common_stats_smooth, Not_rarefied_common_stats_no_smooth, file = file.path(full_path, "Not_rarefied_CpG_stats_common.RData"))
+rm(Not_rarefied_common_bsseq)
+rm(Not_rarefied_common_stats_smooth)
+rm(Not_rarefied_common_stats_no_smooth)
+gc()
 
 
-#####  Analysis for unfiltered coverage #####
-#############################################
+#####  Analysis for *existing* CpGs (not rarefied) #####
+########################################################
+
+# Find all CpGs which exist in all samples, merge and convert to bbseq object
+Covs_grl_all_df = lapply(Not_rarefied_covs_grl, function(x) data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov))
+Covs_grl_all_df = Merge_CpGs(Covs_grl_all_df)
+Not_rarefied_existing_bsseq = Create_BS_object(Covs_grl_all_df)
+rm(Covs_grl_all_df)
+rm(Not_rarefied_covs_grl)
+gc()
+
+# Smooth bbseq object per chromosome, return a list of bbseq smoothed objects.
+# Covs_grl_all_bsseq_list_smooth = Create_smooth_fit_list_per_chr(Not_rarefied_existing_bsseq, 500, 5)
+
+# Perform stats using DMLtest from DSS package
+sample_group_1 = c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E")
+sample_group_2 = c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W")
+Not_rarefied_existing_stats_smooth = Create_stat_list_per_chr(Not_rarefied_existing_bsseq, smoothing_bool = TRUE, smoothing_span = 500, number_of_workers = 16, group_1 = sample_group_1, group_2 = sample_group_2)
+Not_rarefied_existing_stats_no_smooth = Create_stat_list_per_chr(Not_rarefied_existing_bsseq, smoothing_bool = FALSE, number_of_workers = 16, group_1 = sample_group_1, group_2 = sample_group_2)
+
+# Save workspace
+save(Not_rarefied_existing_bsseq, Not_rarefied_existing_stats_smooth, Not_rarefied_existing_stats_no_smooth, file = file.path(full_path, "Not_rarefied_CpG_stats_existing.RData"))
+rm(Not_rarefied_existing_bsseq)
+rm(Not_rarefied_existing_stats_smooth)
+rm(Not_rarefied_existing_stats_no_smooth)
+gc()
+
+
+#####  Analysis for *common* CpGs (rarefied) #####
+##################################################
+
+load(file.path(path_to_cpgerus, "04_parse_bismark_covs/Rarefied_grch38p13_combined_covs_grl.RData"))
+
+# Find common CpGs which exist in all samples, merge and convert to bbseq object
+Covs_grl_all_df = Filter_common_CpGs(Rarefied_covs_grl)
+Covs_grl_all_df = lapply(Covs_grl_all_df, function(x) data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov))
+Rarefied_common_bsseq = Create_BS_object(Covs_grl_all_df)
+rm(Covs_grl_all_df)
+gc()
+
+# Smooth bbseq object per chromosome, return a list of bbseq smoothed objects.
+# Covs_grl_all_bsseq_list_smooth = Create_smooth_fit_list_per_chr(Rarefied_common_bsseq, 500, 5)
+
+# Perform stats using DMLtest from DSS package
+sample_group_1 = c("WR025V1ER", "WR025V9ER", "WR069V1ER", "WR069V9ER")
+sample_group_2 = c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR")
+Rarefied_common_stats_smooth = Create_stat_list_per_chr(Rarefied_common_bsseq, smoothing_bool = TRUE, smoothing_span = 500, number_of_workers = 16, group_1 = sample_group_1, group_2 = sample_group_2)
+Rarefied_common_stats_no_smooth = Create_stat_list_per_chr(Rarefied_common_bsseq, smoothing_bool = FALSE, number_of_workers = 16, group_1 = sample_group_1, group_2 = sample_group_2)
+
+# Save workspace
+save(Rarefied_common_bsseq, Rarefied_common_stats_smooth, Rarefied_common_stats_no_smooth, file = file.path(full_path, "Rarefied_CpG_stats_common.RData"))
+rm(Rarefied_common_bsseq)
+rm(Rarefied_common_stats_smooth)
+rm(Rarefied_common_stats_no_smooth)
+gc()
+
+#####  Analysis for *existing* CpGs (rarefied) #####
+####################################################
+
+# Find all CpGs which exist in all samples, merge and convert to bbseq object
+Covs_grl_all_df = lapply(Rarefied_covs_grl, function(x) data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov))
+Covs_grl_all_df = Merge_CpGs(Covs_grl_all_df)
+Rarefied_existing_bsseq = Create_BS_object(Covs_grl_all_df)
+rm(Covs_grl_all_df)
+rm(Rarefied_covs_grl)
+gc()
+
+# Smooth bbseq object per chromosome, return a list of bbseq smoothed objects.
+# Covs_grl_all_bsseq_list_smooth = Create_smooth_fit_list_per_chr(Rarefied_existing_bsseq, 500, 5)
+
+# Perform stats using DMLtest from DSS package
+sample_group_1 = c("WR025V1ER", "WR025V9ER", "WR069V1ER", "WR069V9ER")
+sample_group_2 = c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR")
+Rarefied_existing_stats_smooth = Create_stat_list_per_chr(Rarefied_existing_bsseq, smoothing_bool = TRUE, smoothing_span = 500, number_of_workers = 16, group_1 = sample_group_1, group_2 = sample_group_2)
+Rarefied_existing_stats_no_smooth = Create_stat_list_per_chr(Rarefied_existing_bsseq, smoothing_bool = FALSE, number_of_workers = 16, group_1 = sample_group_1, group_2 = sample_group_2)
+
+# Save workspace
+save(Rarefied_existing_bsseq, Rarefied_existing_stats_smooth, Rarefied_existing_stats_no_smooth, file = file.path(full_path, "Rarefied_CpG_stats_existing.RData"))
+rm(Rarefied_existing_bsseq)
+rm(Rarefied_existing_stats_smooth)
+rm(Rarefied_existing_stats_no_smooth)
+gc()
+
+
+#####  Analysis for *common* CpGs (Original) #####
+##################################################
+
+load(file.path(path_to_cpgerus, "04_parse_bismark_covs/grch38p13_combined_covs_grl.RData"))
+
+# Find common CpGs which exist in all samples, merge and convert to bbseq object
+Covs_grl_all_df = Filter_common_CpGs(covs_grl)
+Covs_grl_all_df = lapply(Covs_grl_all_df, function(x) data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov))
+Original_common_bsseq = Create_BS_object(Covs_grl_all_df)
+rm(Covs_grl_all_df)
+gc()
+
+# Smooth bbseq object per chromosome, return a list of bbseq smoothed objects.
+# Covs_grl_all_bsseq_list_smooth = Create_smooth_fit_list_per_chr(Original_common_bsseq, 500, 5)
+
+# Perform stats using DMLtest from DSS package
+sample_group_1 = c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E")
+sample_group_2 = c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W")
+Original_common_stats_smooth = Create_stat_list_per_chr(Original_common_bsseq, smoothing_bool = TRUE, smoothing_span = 500, number_of_workers = 16, group_1 = sample_group_1, group_2 = sample_group_2)
+Original_common_stats_no_smooth = Create_stat_list_per_chr(Original_common_bsseq, smoothing_bool = FALSE, number_of_workers = 16, group_1 = sample_group_1, group_2 = sample_group_2)
+
+# Save workspace
+save(Original_common_bsseq, Original_common_stats_smooth, Original_common_stats_no_smooth, file = file.path(full_path, "Original_CpG_stats_common.RData"))
+rm(Original_common_bsseq)
+rm(Original_common_stats_smooth)
+rm(Original_common_stats_no_smooth)
+gc()
+
+
+#####  Analysis for *existing* CpGs (Original) #####
+####################################################
 
 # Find all CpGs which exist in all samples, merge and convert to bbseq object
 Covs_grl_all_df = lapply(covs_grl, function(x) data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov))
 Covs_grl_all_df = Merge_CpGs(Covs_grl_all_df)
-Covs_grl_all_bsseq = Create_BS_object(Covs_grl_all_df)
-rm(covs_grl)
+Original_existing_bsseq = Create_BS_object(Covs_grl_all_df)
 rm(Covs_grl_all_df)
+rm(covs_grl)
+gc()
 
 # Smooth bbseq object per chromosome, return a list of bbseq smoothed objects.
-# Covs_grl_all_bsseq_list_smooth = Create_smooth_fit_list_per_chr(Covs_grl_all_bsseq, 500, 5)
+# Covs_grl_all_bsseq_list_smooth = Create_smooth_fit_list_per_chr(Original_existing_bsseq, 500, 5)
 
 # Perform stats using DMLtest from DSS package
 sample_group_1 = c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E")
 sample_group_2 = c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W")
-Covs_grl_all_bsseq_list_stats = Create_stat_list_per_chr(Covs_grl_all_bsseq, smoothing_bool = TRUE, smoothing_span = 500, number_of_workers = 8, group_1 = sample_group_1, group_2 = sample_group_2)
-Covs_grl_all_bsseq_list_stats_no_smooth = Create_stat_list_per_chr(Covs_grl_all_bsseq, smoothing_bool = FALSE, number_of_workers = 8, group_1 = sample_group_1, group_2 = sample_group_2)
+Original_existing_stats_smooth = Create_stat_list_per_chr(Original_existing_bsseq, smoothing_bool = TRUE, smoothing_span = 500, number_of_workers = 16, group_1 = sample_group_1, group_2 = sample_group_2)
+Original_existing_stats_no_smooth = Create_stat_list_per_chr(Original_existing_bsseq, smoothing_bool = FALSE, number_of_workers = 16, group_1 = sample_group_1, group_2 = sample_group_2)
 
 # Save workspace
-save(Covs_grl_all_bsseq, Covs_grl_all_bsseq_list_stats, Covs_grl_all_bsseq_list_stats_no_smooth, file = "Motif_stats_not_subsampled.RData")
-rm(Covs_grl_all_bsseq)
-rm(Covs_grl_all_bsseq_list_stats)
-rm(Covs_grl_all_bsseq_list_stats_no_smooth)
-
-
-#####  Analysis for unfiltered coverage and common CpGs #####
-#############################################################
-
-# Find all CpGs which exist in all samples, merge and convert to bbseq object
-Covs_grl_all_df = Filter_common_CpGs(covs_grl)
-Covs_grl_all_df = lapply(Covs_grl_all_df, function(x) data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov))
-Covs_grl_common_bsseq = Create_BS_object(Covs_grl_all_df)
-rm(covs_grl)
-rm(Covs_grl_all_df)
-
-# Smooth bbseq object per chromosome, return a list of bbseq smoothed objects.
-# Covs_grl_all_bsseq_list_smooth = Create_smooth_fit_list_per_chr(Covs_grl_common_bsseq, 500, 5)
-
-# Perform stats using DMLtest from DSS package
-sample_group_1 = c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E")
-sample_group_2 = c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W")
-Covs_grl_common_bsseq_list_stats = Create_stat_list_per_chr(Covs_grl_common_bsseq, smoothing_bool = TRUE, smoothing_span = 500, number_of_workers = 8, group_1 = sample_group_1, group_2 = sample_group_2)
-Covs_grl_common_bsseq_list_stats_no_smooth = Create_stat_list_per_chr(Covs_grl_common_bsseq, smoothing_bool = FALSE, number_of_workers = 8, group_1 = sample_group_1, group_2 = sample_group_2)
-
-# Save workspace
-save(Covs_grl_common_bsseq, Covs_grl_common_bsseq_list_stats, Covs_grl_common_bsseq_list_stats_no_smooth, file = "Motif_stats_common.RData")
-rm(Covs_grl_common_bsseq)
-rm(Covs_grl_common_bsseq_list_stats)
-rm(Covs_grl_common_bsseq_list_stats_no_smooth)
+save(Original_existing_bsseq, Original_existing_stats_smooth, Original_existing_stats_no_smooth, file = file.path(full_path, "Original_CpG_stats_existing.RData"))
+rm(Original_existing_bsseq)
+rm(Original_existing_stats_smooth)
+rm(Original_existing_stats_no_smooth)
+gc()
 
 quit(save = "no")
