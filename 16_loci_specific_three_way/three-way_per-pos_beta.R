@@ -408,3 +408,6 @@ g8 <- ggplot(wide_df, aes(x=gcpct, y=delta_ont_wgbs)) +
 plot_grid(g3, g6, g4, g7, g5, g8, ncol=2, rel_heights=c(1, 1, 1),
           labels=c('A', 'B', 'C', 'D', 'E', 'F'))
 ggsave('three-way.beta_and_gc.pdf', width=10, height=12)
+
+# list deps used in this script
+sessionInfo()
