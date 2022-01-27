@@ -4,13 +4,22 @@
 
 Reads in betas from EM-seq, WGBS and ONT Cas9 experiments, and compares them 
 on a per-position basis.
+
+Shares the same cutoffs used in the coverage script, so that outputs from both
+scripts are comparable.
 " -> doc
 
 setwd('~/csiro/stopwatch/cpgberus/16_loci_specific_three_way/')
+
+# define constants
 RDNA_FASTA <- '../data/homo_sapiens.45s.fa.gz'
 EMSEQ_COV <- Sys.glob('./WR*ER.hsap_45s.cov.gz')
 WGBS_COV <- Sys.glob('./WR*WR.hsap_45s.cov.gz')
 ONT_BED <- Sys.glob('./WR*.bed.gz')
+
+EMSEQ_COLOR <- '#1b9e77'
+ONT_COLOR <- '#d95f02'
+WGBS_COLOR <- '#7570b3'
 
 suppressPackageStartupMessages({
   library(cowplot)
@@ -128,7 +137,7 @@ diag_message('Mean coverage of remaining positions are: ',
              'WGBS ', mean(wgbs_df$cov), '; ',
              'ONT Cas9 ', mean(ont_df$cov))
 
-# only keep relevant columns
+# only keep relevant columns (keep betas from this point on)
 emseq_df <- emseq_df[, c('pos', 'beta', 'sample_id')]
 wgbs_df <- wgbs_df[, c('pos', 'beta', 'sample_id')]
 ont_df <- ont_df[, c('pos', 'beta', 'sample_id')]
@@ -205,6 +214,8 @@ pca_df$sample <- gsub('ER$|WR$|O$', '', rownames(pca_df))
 
 g <- ggplot(pca_df, aes(x=PC1, y=PC2, color=method, fill=method, shape=sample)) +
   geom_point(size=3, alpha=0.5) +
+  scale_color_manual(values=c(EMSEQ_COLOR, ONT_COLOR, WGBS_COLOR)) +
+  scale_fill_manual(values=c(EMSEQ_COLOR, ONT_COLOR, WGBS_COLOR)) +
   scale_shape_manual(values=21:25) +
   xlab(paste0('PC1 (', round(eigs[1] / sum(eigs) * 100, 2), '%)')) +
   ylab(paste0('PC2 (', round(eigs[2] / sum(eigs) * 100, 2), '%)')) +
@@ -213,12 +224,11 @@ g <- ggplot(pca_df, aes(x=PC1, y=PC2, color=method, fill=method, shape=sample)) 
 
 #+ fig.width=6, fig.height=6
 print(g)
-ggsave('three-way.pca.pdf', width=6, height=6)
+ggsave('three-way.beta.pca.pdf', width=6, height=6)
 
 # PCA indicates variation is largest across methods, much less variation across
 # samples. which is why per-method means were computed. subsequent plots are
 # based off these mean values
-
 
 #+ fig.width=8, fig.height=8
 # plot EM-seq vs. WGBS
@@ -286,14 +296,14 @@ gcpct_df$gcpct <- unlist(lapply(
 # first 1 kb is promoter sequence; make sure transcription starts at +1
 gcpct_df$pos <- gcpct_df$pos - 1000
 
-#+ fig.width=10, fig.height=7
+#+ fig.width=10, fig.height=5
 # plot beta across loci
 g1 <- ggplot(long_df, aes(x=pos, y=beta, color=method)) +
   geom_point(alpha=0.1) +
   geom_smooth(method='loess', span=0.1) +
-  scale_color_manual(values=c('#1b9e77','#d95f02','#7570b3')) +
+  scale_color_manual(values=c(EMSEQ_COLOR, ONT_COLOR, WGBS_COLOR)) +
   coord_cartesian(xlim=c(0, 13332)) +
-  ggtitle('Methylation levels across 45S loci') +
+  ggtitle('Methylation levels and GC% across 45S loci') +
   xlab('Position') +
   ylab('Methylation level (%)') +
   theme_minimal(12) +
@@ -308,7 +318,8 @@ g2 <- ggplot(gcpct_df, aes(x=pos, y=gcpct)) +
   ylab('GC%') +
   theme_minimal(12)
 
-plot_grid(g1, g2, ncol=1, rel_heights=c(0.8, 0.2))
+plot_grid(g1, g2, ncol=1, align='v', rel_heights=c(0.75, 0.25))
+ggsave('three-way.beta_across_loci.pdf', width=10, height=5)
 
 # does GC% influence the discrepancies in beta? re-do scatterplot, but colour
 # points by GC%
