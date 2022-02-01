@@ -12,15 +12,15 @@ Total number of methylation call strings processed: 280634064
 
 Final Cytosine Methylation Report
 =================================
-Total number of C's analysed:	5370634050
+Total number of C's analysed:	5370634767
 
-Total methylated C's in CpG context:	193397057
-Total methylated C's in CHG context:	4411421
-Total methylated C's in CHH context:	14582747
+Total methylated C's in CpG context:	193396766
+Total methylated C's in CHG context:	4411350
+Total methylated C's in CHH context:	14582837
 
-Total C to T conversions in CpG context:	46070101
-Total C to T conversions in CHG context:	1135192856
-Total C to T conversions in CHH context:	3976979868
+Total C to T conversions in CpG context:	46070446
+Total C to T conversions in CHG context:	1135192549
+Total C to T conversions in CHH context:	3976980819
 
 C methylated in CpG context:	80.8%
 C methylated in CHG context:	0.4%
