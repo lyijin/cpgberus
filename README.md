@@ -2,13 +2,17 @@
 
 A four-headed beast stands guard at the gates of Methylation. All four heads bark differently--which one's the best at revealing the secrets behind the guarded gates?
 
+![Gustav Dore's illustration of Cerberus in Dante's *Inferno*; public domain](cerberus.jpg)
+
+(Yes, pedantically speaking, Cerberuses tend to have a max of three heads. We, uh, had had a surprise inclusion of a fourth technique later during the project.)
+
 ## Common abbreviations ##
 
-WGBS: Whole genome bisulphite sequencing, the gold standard.
+WGBS: Whole genome bisulphite sequencing, the current gold standard.
 
 EM-seq: Enzymatic Methyl-seq, uses two enzymes to convert DNA instead of sodium bisulphite.
 
-MethylationEPIC: Infinium MethylationEPIC arrays, checks methylation status of 850k positions. Provides "analogue" output.
+EPIC: Infinium MethylationEPIC arrays, checks methylation status of ~850,000 positions. Provides "analogue" methylation readouts.
 
 ONT: Oxford Nanopore Technology, allows for long reads and detection of base modifications directly with fancy machine learning.
 
