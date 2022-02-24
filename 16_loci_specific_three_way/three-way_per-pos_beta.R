@@ -17,6 +17,7 @@ EMSEQ_COV <- Sys.glob('./WR*ER.hsap_45s.cov.gz')
 WGBS_COV <- Sys.glob('./WR*WR.hsap_45s.cov.gz')
 ONT_BED <- Sys.glob('./WR*.bed.gz')
 
+# colour codes are from Dark2 panel
 EMSEQ_COLOR <- '#1b9e77'
 ONT_COLOR <- '#d95f02'
 WGBS_COLOR <- '#7570b3'
@@ -38,11 +39,12 @@ lm_eqn <- function(df, x, y) {
   # modified from https://stackoverflow.com/questions/7549694/add-regression-line-equation-and-r2-on-graph
   model <- lm(as.formula(paste(y, '~', x)), df)
   eq <- substitute(
-    italic(y) == c + m %.% italic(x)*','~italic(r)^2 == r2*','~italic(p) == pval,
+    italic(y) == c + m %.% italic(x)*','~italic(r)^2 == r2*','~italic(p) == pval*','~italic(n) == n_df,
     list(c = format(unname(coef(model)[1]), digits=3),
          m = format(unname(coef(model)[2]), digits=3),
          r2 = format(summary(model)$r.squared, digits=4),
-         pval = format(summary(model)$coefficients[2,4], digits=1)))
+         pval = format(summary(model)$coefficients[2,4], digits=1),
+         n_df = format(nrow(df), big.mark=',')))
   as.character(as.expression(eq))
 }
 
@@ -233,7 +235,7 @@ ggsave('three-way.beta.pca.pdf', width=6, height=6)
 #+ fig.width=8, fig.height=8
 # plot EM-seq vs. WGBS
 ggplot(wide_df, aes(x=meanER, y=meanWR)) +
-  geom_point(alpha=0.2) + 
+  geom_point(size=1, alpha=0.2) + 
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanER', 'meanWR'), parse=TRUE) +
@@ -244,7 +246,7 @@ ggplot(wide_df, aes(x=meanER, y=meanWR)) +
 
 # plot EM-seq vs. ONT
 ggplot(wide_df, aes(x=meanER, y=meanO)) +
-  geom_point(alpha=0.2) + 
+  geom_point(size=1, alpha=0.2) + 
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanER', 'meanO'), parse=TRUE) +
@@ -255,7 +257,7 @@ ggplot(wide_df, aes(x=meanER, y=meanO)) +
 
 # WGBS vs. ONT
 ggplot(wide_df, aes(x=meanWR, y=meanO)) +
-  geom_point(alpha=0.2) + 
+  geom_point(size=1, alpha=0.2) + 
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanWR', 'meanO'), parse=TRUE) +
@@ -299,7 +301,7 @@ gcpct_df$pos <- gcpct_df$pos - 1000
 #+ fig.width=10, fig.height=5
 # plot beta across loci
 g1 <- ggplot(long_df, aes(x=pos, y=beta, color=method)) +
-  geom_point(alpha=0.1) +
+  geom_point(size=1, alpha=0.1) +
   geom_smooth(method='loess', span=0.1) +
   scale_color_manual(values=c(EMSEQ_COLOR, ONT_COLOR, WGBS_COLOR)) +
   coord_cartesian(xlim=c(0, 13332)) +
@@ -334,7 +336,7 @@ head(wide_df)
 
 # plot EM-seq vs. WGBS and colour points by GC%
 g3 <- ggplot(wide_df, aes(x=meanER, y=meanWR, color=gcpct)) +
-  geom_point(alpha=0.4) + 
+  geom_point(size=1, alpha=0.4) + 
   scale_color_distiller('GC%', palette='RdYlBu', limits=c(55, 95),
                         guide=guide_colorbar(direction='horizontal')) +
   geom_line(stat='smooth', method=lm, formula='y ~ x', alpha=0.3) +
@@ -349,7 +351,7 @@ g3 <- ggplot(wide_df, aes(x=meanER, y=meanWR, color=gcpct)) +
 
 # plot EM-seq vs. ONT Cas9 and colour points by GC%
 g4 <- ggplot(wide_df, aes(x=meanER, y=meanO, color=gcpct)) +
-  geom_point(alpha=0.4) + 
+  geom_point(size=1, alpha=0.4) + 
   scale_color_distiller('GC%', palette='RdYlBu', limits=c(55, 95),
                         guide=guide_colorbar(direction='horizontal')) +
   geom_line(stat='smooth', method=lm, formula='y ~ x', alpha=0.3) +
@@ -364,7 +366,7 @@ g4 <- ggplot(wide_df, aes(x=meanER, y=meanO, color=gcpct)) +
 
 # plot WGBS vs. ONT Cas9 and colour points by GC%
 g5 <- ggplot(wide_df, aes(x=meanWR, y=meanO, color=gcpct)) +
-  geom_point(alpha=0.4) + 
+  geom_point(size=1, alpha=0.4) + 
   scale_color_distiller('GC%', palette='RdYlBu', limits=c(55, 95),
                         guide=guide_colorbar(direction='horizontal')) +
   geom_line(stat='smooth', method=lm, formula='y ~ x', alpha=0.3) +
@@ -381,7 +383,7 @@ g5 <- ggplot(wide_df, aes(x=meanWR, y=meanO, color=gcpct)) +
 wide_df$delta_wgbs_emseq <- wide_df$meanWR - wide_df$meanER
 summary(lm(wide_df$delta_wgbs_emseq ~ wide_df$gcpct))
 g6 <- ggplot(wide_df, aes(x=gcpct, y=delta_wgbs_emseq)) +
-  geom_point(alpha=0.2) + 
+  geom_point(size=1, alpha=0.2) + 
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
   coord_cartesian(xlim=c(40, 95), ylim=c(-20, 40)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
@@ -393,7 +395,7 @@ g6 <- ggplot(wide_df, aes(x=gcpct, y=delta_wgbs_emseq)) +
 
 wide_df$delta_ont_emseq <- wide_df$meanO - wide_df$meanER
 g7 <- ggplot(wide_df, aes(x=gcpct, y=delta_ont_emseq)) +
-  geom_point(alpha=0.2) + 
+  geom_point(size=1, alpha=0.2) + 
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
   coord_cartesian(xlim=c(40, 95), ylim=c(-20, 40)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
@@ -405,7 +407,7 @@ g7 <- ggplot(wide_df, aes(x=gcpct, y=delta_ont_emseq)) +
 
 wide_df$delta_ont_wgbs <- wide_df$meanO - wide_df$meanWR
 g8 <- ggplot(wide_df, aes(x=gcpct, y=delta_ont_wgbs)) +
-  geom_point(alpha=0.2) + 
+  geom_point(size=1, alpha=0.2) + 
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
   coord_cartesian(xlim=c(40, 95), ylim=c(-20, 40)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,

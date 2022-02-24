@@ -87,7 +87,7 @@ diag_message('Number of positions with min 5 coverage in 4/4 WGBS samples: ',
 diag_message('Number of positions with min 5 coverage in 3/4 EM-seq samples: ',
              sum(rowSums(cov_df[, grepl('ER$', colnames(cov_df))] >= 5) >= 3))
 diag_message('Number of positions with min 5 coverage in 3/4 EM-seq samples: ',
-             sum(rowSums(cov_df[, grepl('ER$', colnames(cov_df))] >= 5) >= 3))
+             sum(rowSums(cov_df[, grepl('WR$', colnames(cov_df))] >= 5) >= 3))
 # ... WGBS not performing too hot here, tsk tsk
 
 # note: for these lines to work, positions in `beta_df` and `cov_df` must have 
@@ -331,6 +331,12 @@ g8 <- ggplot(wide_df, aes(x=gcpct, y=delta_ont_wgbs)) +
 plot_grid(g3, g6, g4, g7, g5, g8, ncol=2, rel_heights=c(1, 1, 1),
           labels=c('A', 'B', 'C', 'D', 'E', 'F'))
 ggsave('three-way.beta_and_gc.pdf', width=10, height=12)
+
+# hmm. there's some interesting trends in the high GC% region. how many positions
+# have high GC% in its immediate context?
+diag_message('Positions with GC > 70% in immediate context: ', sum(wide_df$gcpct > 70))
+diag_message('Positions with GC > 75% in immediate context: ', sum(wide_df$gcpct > 75))
+# don't think analyses using these collection of points would be convincing...
 
 # list deps used in this script
 sessionInfo()
