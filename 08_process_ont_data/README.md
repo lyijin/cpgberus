@@ -8,7 +8,7 @@ As relative newcomers to this type of data, we did not second-guess ONT's calls,
 
 The coverage calling from FASTQ is relatively straightforward: use FASTQs and map them against reference sequences. Exact commands are in the `15_ont_minimap2_coverage/` folder.
 
-This folder provides "guidance" for those who dare brave the ONT dungeons. Here be dragons. Guidance likely to be out-of-date really quickly due to the speed of ONT updating their bioinformatics tools, but well at least we've done our part in easing replicability of science.
+This folder provides "guidance" for those who dare brave the ONT dungeons and perform direct methylation calling from ONT reads. Here be dragons. Guidance likely to be out-of-date really quickly due to the speed of ONT updating their bioinformatics tools, but well at least we've done our part in easing replicability of science.
 
 # Setting up `megalodon` on a `slurm` cluster #
 
@@ -210,7 +210,7 @@ drwxr-xr-x  5 lie128 hpc-users 4.0K Sep 22 11:39 rerio/
 
 ## Troubleshooting corner ##
 
-We're still not 100% sure WHY these errors occur, but google + elbow grease led to fixes that work (mysteriously). From brief discussion with SC, oddities could sometimes occur when mixing `conda` packages (usually compiled with `gcc`) and `pip install` stuff (which sometimes uses the system default compiler, `icc` in this case).
+We're still not 100% sure WHY these errors occur, but google + elbow grease led to fixes that work (mysteriously). From brief discussion with CSIRO Scientific Computing, oddities could sometimes occur when mixing `conda` packages (usually compiled with `gcc`) and `pip install` stuff (which sometimes uses the system default compiler, `icc` in this case).
 
 Problem 1: `mappy` (Python bindings for `minimap2`, automatically installed by `pip install megalodon`) complains about intel sse2 something something.
 
