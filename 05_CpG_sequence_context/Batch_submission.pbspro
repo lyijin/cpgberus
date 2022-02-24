@@ -1,0 +1,14 @@
+#!/bin/bash
+
+#PBS -A UQ-Health-CCR
+#PBS -l select=1:ncpus=12:intel=true:mem=60GB:vmem=60GB,walltime=12:00:00
+
+module load R/4.1.1
+
+cd $PBS_O_WORKDIR
+
+# R CMD BATCH 01_Coverage_analysis.R
+
+# sleep 5
+
+R CMD BATCH 02_CpG_context_stats.R
