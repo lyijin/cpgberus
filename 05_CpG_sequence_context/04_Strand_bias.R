@@ -27,6 +27,7 @@ library(BSgenome.Hsapiens.UCSC.hg38)
 #######################
 
 path_to_cpgerus = "/scratch/user/uqdguanz/Projects/Meth/cpgberus"
+source(paste0(path_to_cpgerus, "/05_CpG_sequence_context/06_Motif_functions.R"))
 
 # Load data just before analysis below and remove objects after to save on memory
 
@@ -456,6 +457,28 @@ temp_df = Variable_distribution(covs_grl_sig_common, "Density", "N", file.path(f
 common_means_and_matrices_subset = common_means_and_matrices[[2]][c("evenness", "abs_delta_meth_pct", "Beta", "N")]
 Plot_complex_heatmap(common_means_and_matrices_subset, EM_Seq_names = c("WR025V1ER", "WR025V9ER", "WR069V1ER", "WR069V9ER"), WGBS_Seq_names = c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR"), file.path(full_path, "Unsmoothed_significant_CpGs_heatmap"))
 
+# Analyse motifs of heatmap.
+seqnames_var_2 = sapply(strsplit(rownames(common_means_and_matrices_subset$Beta), "_"), "[", 1)
+start_var_2 = as.numeric(sapply(strsplit(rownames(common_means_and_matrices_subset$Beta), "_"), "[", -1))
+Coverage_dataframe_2 = data.frame(seqnames = seqnames_var_2, start = start_var_2)
+
+GC_matrix_2 = Extract_motif_calculate_GC(Coverage_dataframe_2, nucleotides_backward = 3, nucleotides_forward = 4)
+
+# Convert to GC% bin list of motifs
+GC_matrix_list = list()
+for (bin_var in sort(unique(GC_matrix_2$Motif_GC_percentage))) {
+	
+	GC_matrix_subset = GC_matrix_2[GC_matrix_2$Motif_GC_percentage == bin_var, ]
+	temp_df = list(GC_matrix_subset)
+	names(temp_df) = bin_var
+	GC_matrix_list = append(GC_matrix_list, temp_df)
+}
+
+# Plot motif
+counter <<- 0
+Motif_plot_data = lapply(GC_matrix_list, Motif_frequency_table, length(GC_matrix_list))
+Motif_plot(Motif_plot_data, file.path(full_path, "Motif_plots"), names(Motif_plot_data), TRUE)
+
 # Plot correlations
 Plot_correlation(common_means_and_matrices_subset, EM_Seq_names = c("WR025V1ER", "WR025V9ER", "WR069V1ER", "WR069V9ER"), WGBS_Seq_names = c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR"), file.path(full_path, "Correlation_plot"))
 
@@ -513,6 +536,28 @@ temp_df = Variable_distribution(covs_grl_sig_common, "Density", "N", file.path(f
 common_means_and_matrices_subset = common_means_and_matrices[[2]][c("evenness", "abs_delta_meth_pct", "Beta", "N")]
 Plot_complex_heatmap(common_means_and_matrices_subset, EM_Seq_names = c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), WGBS_Seq_names = c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), file.path(full_path, "Unsmoothed_significant_CpGs_heatmap"))
 
+# Analyse motifs of heatmap.
+seqnames_var_2 = sapply(strsplit(rownames(common_means_and_matrices_subset$Beta), "_"), "[", 1)
+start_var_2 = as.numeric(sapply(strsplit(rownames(common_means_and_matrices_subset$Beta), "_"), "[", -1))
+Coverage_dataframe_2 = data.frame(seqnames = seqnames_var_2, start = start_var_2)
+
+GC_matrix_2 = Extract_motif_calculate_GC(Coverage_dataframe_2, nucleotides_backward = 3, nucleotides_forward = 4)
+
+# Convert to GC% bin list of motifs
+GC_matrix_list = list()
+for (bin_var in sort(unique(GC_matrix_2$Motif_GC_percentage))) {
+	
+	GC_matrix_subset = GC_matrix_2[GC_matrix_2$Motif_GC_percentage == bin_var, ]
+	temp_df = list(GC_matrix_subset)
+	names(temp_df) = bin_var
+	GC_matrix_list = append(GC_matrix_list, temp_df)
+}
+
+# Plot motif
+counter <<- 0
+Motif_plot_data = lapply(GC_matrix_list, Motif_frequency_table, length(GC_matrix_list))
+Motif_plot(Motif_plot_data, file.path(full_path, "Motif_plots"), names(Motif_plot_data), TRUE)
+
 # Plot correlations
 Plot_correlation(common_means_and_matrices_subset, EM_Seq_names = c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), WGBS_Seq_names = c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), file.path(full_path, "Correlation_plot"))
 
@@ -558,6 +603,28 @@ temp_df = Variable_distribution(covs_grl_sig_common, "Density", "N", file.path(f
 common_means_and_matrices_subset = common_means_and_matrices[[2]][c("evenness", "abs_delta_meth_pct", "Beta", "N")]
 Plot_complex_heatmap(common_means_and_matrices_subset, EM_Seq_names = c("WR025V1ER", "WR025V9ER", "WR069V1ER", "WR069V9ER"), WGBS_Seq_names = c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR"), file.path(full_path, "Unsmoothed_significant_CpGs_heatmap"))
 
+# Analyse motifs of heatmap.
+seqnames_var_2 = sapply(strsplit(rownames(common_means_and_matrices_subset$Beta), "_"), "[", 1)
+start_var_2 = as.numeric(sapply(strsplit(rownames(common_means_and_matrices_subset$Beta), "_"), "[", -1))
+Coverage_dataframe_2 = data.frame(seqnames = seqnames_var_2, start = start_var_2)
+
+GC_matrix_2 = Extract_motif_calculate_GC(Coverage_dataframe_2, nucleotides_backward = 3, nucleotides_forward = 4)
+
+# Convert to GC% bin list of motifs
+GC_matrix_list = list()
+for (bin_var in sort(unique(GC_matrix_2$Motif_GC_percentage))) {
+	
+	GC_matrix_subset = GC_matrix_2[GC_matrix_2$Motif_GC_percentage == bin_var, ]
+	temp_df = list(GC_matrix_subset)
+	names(temp_df) = bin_var
+	GC_matrix_list = append(GC_matrix_list, temp_df)
+}
+
+# Plot motif
+counter <<- 0
+Motif_plot_data = lapply(GC_matrix_list, Motif_frequency_table, length(GC_matrix_list))
+Motif_plot(Motif_plot_data, file.path(full_path, "Motif_plots"), names(Motif_plot_data), TRUE)
+
 # Plot correlations
 Plot_correlation(common_means_and_matrices_subset, EM_Seq_names = c("WR025V1ER", "WR025V9ER", "WR069V1ER", "WR069V9ER"), WGBS_Seq_names = c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR"), file.path(full_path, "Correlation_plot"))
 
@@ -601,6 +668,28 @@ temp_df = Variable_distribution(covs_grl_sig_common, "Density", "N", file.path(f
 # Plot heatmap. For row clustering, missing values use the group CpG average.
 common_means_and_matrices_subset = common_means_and_matrices[[2]][c("evenness", "abs_delta_meth_pct", "Beta", "N")]
 Plot_complex_heatmap(common_means_and_matrices_subset, EM_Seq_names = c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), WGBS_Seq_names = c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), file.path(full_path, "Unsmoothed_significant_CpGs_heatmap"))
+
+# Analyse motifs of heatmap.
+seqnames_var_2 = sapply(strsplit(rownames(common_means_and_matrices_subset$Beta), "_"), "[", 1)
+start_var_2 = as.numeric(sapply(strsplit(rownames(common_means_and_matrices_subset$Beta), "_"), "[", -1))
+Coverage_dataframe_2 = data.frame(seqnames = seqnames_var_2, start = start_var_2)
+
+GC_matrix_2 = Extract_motif_calculate_GC(Coverage_dataframe_2, nucleotides_backward = 3, nucleotides_forward = 4)
+
+# Convert to GC% bin list of motifs
+GC_matrix_list = list()
+for (bin_var in sort(unique(GC_matrix_2$Motif_GC_percentage))) {
+	
+	GC_matrix_subset = GC_matrix_2[GC_matrix_2$Motif_GC_percentage == bin_var, ]
+	temp_df = list(GC_matrix_subset)
+	names(temp_df) = bin_var
+	GC_matrix_list = append(GC_matrix_list, temp_df)
+}
+
+# Plot motif
+counter <<- 0
+Motif_plot_data = lapply(GC_matrix_list, Motif_frequency_table, length(GC_matrix_list))
+Motif_plot(Motif_plot_data, file.path(full_path, "Motif_plots"), names(Motif_plot_data), TRUE)
 
 # Plot correlations
 Plot_correlation(common_means_and_matrices_subset, EM_Seq_names = c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), WGBS_Seq_names = c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), file.path(full_path, "Correlation_plot"))
