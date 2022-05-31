@@ -21,7 +21,7 @@ library(bsseq)
 #######################
 
 path_to_cpgerus = "/scratch/user/uqdguanz/Projects/Meth/cpgberus"
-source(paste0(path_to_cpgerus, "/05_CpG_sequence_context/06_Motif_functions.R"))
+source(paste0(path_to_cpgerus, "/05_CpG_sequence_context/07_Motif_functions.R"))
 
 # Load data just before analysis below and remove objects after to save on memory
 

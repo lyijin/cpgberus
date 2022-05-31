@@ -27,7 +27,7 @@ library(BSgenome.Hsapiens.UCSC.hg38)
 #######################
 
 path_to_cpgerus = "/scratch/user/uqdguanz/Projects/Meth/cpgberus"
-source(paste0(path_to_cpgerus, "/05_CpG_sequence_context/06_Motif_functions.R"))
+source(paste0(path_to_cpgerus, "/05_CpG_sequence_context/07_Motif_functions.R"))
 
 # Load data just before analysis below and remove objects after to save on memory
 
@@ -397,14 +397,14 @@ Plot_correlation <- function(Input_matrix, EM_Seq_names, WGBS_Seq_names, File_na
 		data.frame(
 		  y = 0.95 * upper_limit,
 		  label = paste('count =', length(y), '\n',
-						'mean =', round(mean(y), 1), '\n')
+						'median =', round(median(y, na.rm = TRUE), 1), '\n')
 		)
 	  )
 	}
 
 	png(paste0(File_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
 	print(ggplot(Data_for_correlation, aes(Motif_GC_percentage, log2(N))) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(colour = Beta, size = Abs_delta_meth_pct), width = 0.2) +
-		 stat_summary(fun.data = stat_box_data, geom = "text", hjust = 0.5, vjust = 0.9, size=2) + labs(x = "Motif GC %", y = "Log2 (Coverage)") + scale_size_continuous(range = c(1, 4)) + theme_bw() + facet_wrap( ~ Library_type))
+		 stat_summary(fun.data = stat_box_data, geom = "text", hjust = 0.5, vjust = 0.9, size=2.5) + labs(x = "Motif GC %", y = "Log2 (Coverage)") + scale_size_continuous(range = c(1, 4)) + theme_bw() + facet_wrap( ~ Library_type))
 	dev.off()
 
 }
