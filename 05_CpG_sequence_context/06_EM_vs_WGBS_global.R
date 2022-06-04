@@ -26,7 +26,7 @@ rownames_var = paste0(unlist(rownames_var), "_", start(Rarefied_existing_bsseq))
 rownames(Beta_meth) = rownames_var
 
 # Select random rows.
-Beta_meth = Beta_meth[sample(nrow(Beta_meth), 2000000), ]
+Beta_meth = Beta_meth[sample(nrow(Beta_meth), 4000000), ]
 
 # # Extract WGBS and EM samples, then convert from wide to long format
 # Subset_test_WGBS = Beta_meth[ , c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR")]
@@ -67,7 +67,7 @@ ggpair_density_custom <- function(data, mapping, ...) {
 }
 
 png(paste0(full_path, "Correlation_plot.png"), units="in", width=11.7, height=8.3, res=300)
-ggpairs(data.frame(Beta_meth), upper = list(continuous = wrap("cor", method = "spearman")), 
+ggpairs(data.frame(Beta_meth), upper = list(continuous = wrap("cor", method = "pearson")), 
 		lower = list(continuous = wrap(ggpair_density_custom, contour_var = "ndensity", adjust = 18, bins = 75), combo = "box_no_facet")) + ggplot2::theme_bw() + ggplot2::theme(axis.text = element_text(size = 6))
 dev.off()
 
