@@ -22,6 +22,7 @@ library(reshape2)
 library(ComplexHeatmap)
 library(factoextra)
 library(BSgenome.Hsapiens.UCSC.hg38)
+library(gridExtra)
 
 #####  Load data  #####
 #######################
@@ -406,7 +407,15 @@ Plot_correlation <- function(Input_matrix, EM_Seq_names, WGBS_Seq_names, File_na
 	print(ggplot(Data_for_correlation, aes(Motif_GC_percentage, log2(N))) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(colour = Beta, size = Abs_delta_meth_pct), width = 0.2) +
 		 stat_summary(fun.data = stat_box_data, geom = "text", hjust = 0.5, vjust = 0.9, size=2.5) + labs(x = "Motif GC %", y = "Log2 (Coverage)") + scale_size_continuous(range = c(1, 4)) + theme_bw() + facet_wrap( ~ Library_type))
 	dev.off()
+	
+	p1 = ggplot(Data_for_correlation, aes(Motif_GC_percentage, log2(N))) + geom_boxplot(outlier.shape = NA) + geom_jitter(width = 0.05) +
+			stat_summary(fun.data = stat_box_data, geom = "text", hjust = 0.5, vjust = 0.9, size=2.5) + labs(y = "Log2 (Coverage)") + theme_bw() + theme(axis.title.x=element_blank()) + facet_wrap( ~ Library_type)
+		 
+	p2 = ggplot(Data_for_correlation, aes(Motif_GC_percentage, Beta)) + geom_violin() + geom_jitter(width = 0.05) + labs(x = "Motif GC %", y = "Beta") + theme_bw() + facet_wrap( ~ Library_type)
 
+	p3 = arrangeGrob(p1, p2, nrow = 2)
+	
+	ggsave(file=paste0(File_name, "_2.png"), p3, width = 11.69, height = 8.3, units = "in", dpi = 300)
 }
 
 #####  Stand bias analysis for *all existing* and significant CpGs  #####

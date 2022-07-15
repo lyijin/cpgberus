@@ -57,15 +57,24 @@ Variable_distribution <- function(List_of_dataframes, density_or_tally, variable
     temp_df$Sample_name_2[Not_rarefaction_position] = substr(temp_df$Sample_name[Not_rarefaction_position], 1, nchar(temp_df$Sample_name[Not_rarefaction_position]) - 1)
 
     temp_df$Seq_type = temp_df$Sample_name
-    temp_df$Seq_type[grep("E$|ER$", temp_df$Sample_name)] = "EM-Seq"
+    temp_df$Seq_type[grep("E$|ER$", temp_df$Sample_name)] = "EM-seq"
     temp_df$Seq_type[grep("W$|WR$", temp_df$Sample_name)] = "WGBS"
 
     # Plot
-    pdf(paste0(plot_name, ".pdf"), width = 11.69, height = 8.3)
-    plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Seq_type)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10)) + theme_bw() + xlab(variable_column_name) + ylab(density_or_tally))
-    plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Seq_type)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10), limits = x_axis_cutoff) + theme_bw() + xlab(variable_column_name) + ylab(density_or_tally))
-    plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Sample_name)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10), limits = x_axis_cutoff) + theme_bw() + xlab(variable_column_name) + ylab(density_or_tally))
-    plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Sample_name_2)) + geom_line(aes(linetype = Seq_type)) + scale_x_continuous(breaks = pretty_breaks(10), limits = x_axis_cutoff) + theme_bw() + xlab(variable_column_name) + ylab(density_or_tally))
+    png(paste0(plot_name, "_1.png"), units="in", width = 11.69, height = 4.15, res = 300)
+    plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Seq_type)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10)) + scale_x_continuous(breaks = pretty_breaks(10)) + scale_y_continuous(label=comma, breaks = pretty_breaks(10)) + theme_minimal(20) + xlab("Coverage") + ylab("Frequency") + labs(color = "Sample"))
+    dev.off()
+	
+	png(paste0(plot_name, "_2.png"), units="in", width = 11.69, height = 4.15, res = 300)
+	plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Seq_type)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10), limits = x_axis_cutoff) + scale_y_continuous(label=comma, breaks = pretty_breaks(10)) + theme_minimal(20) + xlab("Coverage") + ylab("Frequency") + labs(color = "Sample"))
+    dev.off()
+	
+	png(paste0(plot_name, "_3.png"), units="in", width = 11.69, height = 4.15, res = 300)
+	plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Sample_name)) + geom_line() + scale_x_continuous(breaks = pretty_breaks(10), limits = x_axis_cutoff) + scale_y_continuous(label=comma, breaks = pretty_breaks(10)) + theme_minimal(20) + xlab("Coverage") + ylab("Frequency") + labs(color = "Sample"))
+    dev.off()
+	
+	png(paste0(plot_name, "_4.png"), units="in", width = 11.69, height = 4.15, res = 300)
+	plot(ggplot(temp_df, aes(x=x_values, y=y_values, group = Sample_name, color = Sample_name_2)) + geom_line(aes(linetype = Seq_type)) + scale_x_continuous(breaks = pretty_breaks(10), limits = x_axis_cutoff) + scale_y_continuous(label=comma, breaks = pretty_breaks(10)) + theme_minimal(20) + xlab("Coverage") + ylab("Frequency") + labs(color = "Sample", linetype = "Library type"))
     dev.off()
     
     return(temp_df)
