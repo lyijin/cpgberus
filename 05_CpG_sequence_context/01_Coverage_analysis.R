@@ -124,6 +124,19 @@ Rarefied_covs_grl_all_df_tally = Variable_distribution(Covs_grl_all_df, "Tally",
 rm(Covs_grl_all_df)
 
 
+#####  Combined graph  #####
+############################
+
+Not_rarefied_covs_grl_all_df_tally$Rarefaction = "Original"
+Rarefied_covs_grl_all_df_tally$Rarefaction = "Rarefied"
+Combined_tally = rbind(Rarefied_covs_grl_all_df_tally, Not_rarefied_covs_grl_all_df_tally)
+
+png(file.path(full_path, "Combined_tally.png"), units="in", width = 11.69, height = 4.15, res = 300)
+plot(ggplot(Combined_tally, aes(x=x_values, y=y_values, group = Sample_name, color = Sample_name_2)) + geom_line(aes(linetype = Seq_type)) + scale_x_continuous(breaks = pretty_breaks(10), limits = c(-5, 70)) + 
+			scale_y_continuous(label=comma, breaks = pretty_breaks(10)) + theme_minimal(15) + xlab("Coverage") + ylab("Frequency") + labs(color = "Sample", linetype = "Library type") + facet_wrap( ~ Rarefaction))
+dev.off()
+
+
 # #####  Analysis using density and tally (original)  #####
 # #########################################################
 
