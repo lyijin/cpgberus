@@ -463,7 +463,7 @@ Plot_correlation <- function(Input_matrix, EM_Seq_names, WGBS_Seq_names, File_na
 	p1 = ggplot(Data_for_correlation, aes(Motif_GC_percentage, log2(N), color = Library_type)) + geom_boxplot(outlier.shape = NA, position = position_dodge(0.8)) + geom_point(position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.8), alpha = 0.6) +
 			labs(y = "Log2 (Coverage)") + theme_minimal(13) + scale_color_manual(values=c("#1b9e77", "#7570b3")) + labs(color = "Library type") + theme(axis.title.x=element_blank())
 	
-	p2 = ggplot(Data_for_correlation, aes(Motif_GC_percentage, Beta, color = Library_type)) + geom_split_violin() + geom_point(aes(fill = Library_type), position = position_jitterdodge(jitter.width = 0.05, dodge.width = 0.25), alpha = 0.6) + labs(x = "Motif GC %", y = "Beta", fill = "Library type") + theme_minimal(13) + scale_fill_manual(values=c("#1b9e77", "#7570b3")) + scale_color_manual(values=c("#1b9e77", "#7570b3"))
+	p2 = ggplot(Data_for_correlation, aes(Motif_GC_percentage, Beta, color = Library_type)) + geom_split_violin() + geom_point(position = position_jitterdodge(jitter.width = 0.05, dodge.width = 0.25), alpha = 0.6) + labs(x = "Motif GC %", y = "Beta", color = "Library type") + theme_minimal(13) + scale_color_manual(values=c("#1b9e77", "#7570b3"))
 	
 	p3 = arrangeGrob(p1, p2, nrow = 2)
 	
