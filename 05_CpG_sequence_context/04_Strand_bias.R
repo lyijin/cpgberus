@@ -225,7 +225,7 @@ Extract_motif_calculate_GC <- function(Input_dataframe, nucleotides_backward, nu
         IRanges(start = Input_dataframe$start, end = (Input_dataframe$start + 1)))
 
     Final_dataframe_grange$cpg_context_nnncgnnn <- getSeq(BSgenome.Hsapiens.UCSC.hg38, Motif_grange)
-    Final_dataframe_grange$Motif_GC_percentage <- as.numeric(letterFrequency(Final_dataframe_grange$cpg_context_nnncgnnn, letters = "GC", as.prob = TRUE))
+    Final_dataframe_grange$Motif_GC_percentage <- as.numeric(letterFrequency(Final_dataframe_grange$cpg_context_nnncgnnn, letters = "GC", as.prob = TRUE)) * 100
     
     Final_dataframe_grange = data.frame(Final_dataframe_grange)
     rownames(Final_dataframe_grange) = paste0(Final_dataframe_grange$seqnames, "_", Final_dataframe_grange$start)
@@ -461,7 +461,7 @@ Plot_correlation <- function(Input_matrix, EM_Seq_names, WGBS_Seq_names, File_na
 	ggsave(file=paste0(File_name, "_2.png"), p3, width = 11.69, height = 8.3, units = "in", dpi = 300)
 	
 	p1 = ggplot(Data_for_correlation, aes(Motif_GC_percentage, log2(N), color = Library_type)) + geom_boxplot(outlier.shape = NA, position = position_dodge(0.8)) + geom_point(position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.8), alpha = 0.6) +
-			labs(y = "Log2 (Coverage)") + theme_minimal(13) + scale_color_manual(values=c("#1b9e77", "#7570b3")) + labs(color = "Library type") + theme(axis.title.x=element_blank())
+			labs(y = "Log2 Coverage") + theme_minimal(13) + scale_color_manual(values=c("#1b9e77", "#7570b3")) + labs(color = "Library type") + theme(axis.title.x=element_blank())
 	
 	p2 = ggplot(Data_for_correlation, aes(Motif_GC_percentage, Beta, color = Library_type)) + geom_split_violin() + geom_point(position = position_jitterdodge(jitter.width = 0.05, dodge.width = 0.25), alpha = 0.6) + labs(x = "Motif GC %", y = "Beta", color = "Library type") + theme_minimal(13) + scale_color_manual(values=c("#1b9e77", "#7570b3"))
 	
