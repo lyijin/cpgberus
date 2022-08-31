@@ -49,7 +49,7 @@ Extract_motif_calculate_GC <- function(Input_dataframe, nucleotides_backward, nu
         
     mcols(Final_dataframe_grange) <- Input_dataframe[c("mu1", "mu2", "diff", "diff.se", "stat", "phi1", "phi2", "pval", "fdr")]
     Final_dataframe_grange$cpg_context_nnncgnnn <- getSeq(BSgenome.Hsapiens.UCSC.hg38, Motif_grange)
-    Final_dataframe_grange$GC_percentage <- as.numeric(letterFrequency(Final_dataframe_grange$cpg_context_nnncgnnn, letters = "GC", as.prob = TRUE))
+    Final_dataframe_grange$GC_percentage <- as.numeric(letterFrequency(Final_dataframe_grange$cpg_context_nnncgnnn, letters = "GC", as.prob = TRUE)) * 100
     Final_dataframe_grange$High_low <- Final_dataframe_grange$diff
     Final_dataframe_grange$High_low[Final_dataframe_grange$High_low >= 0] <- "Low"
     Final_dataframe_grange$High_low[Final_dataframe_grange$High_low <= 0] <- "High"

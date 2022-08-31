@@ -22,6 +22,8 @@ library(reshape2)
 library(ComplexHeatmap)
 library(factoextra)
 library(BSgenome.Hsapiens.UCSC.hg38)
+library(gridExtra)
+library(circlize)
 
 #####  Load data  #####
 #######################
@@ -223,7 +225,7 @@ Extract_motif_calculate_GC <- function(Input_dataframe, nucleotides_backward, nu
         IRanges(start = Input_dataframe$start, end = (Input_dataframe$start + 1)))
 
     Final_dataframe_grange$cpg_context_nnncgnnn <- getSeq(BSgenome.Hsapiens.UCSC.hg38, Motif_grange)
-    Final_dataframe_grange$Motif_GC_percentage <- as.numeric(letterFrequency(Final_dataframe_grange$cpg_context_nnncgnnn, letters = "GC", as.prob = TRUE))
+    Final_dataframe_grange$Motif_GC_percentage <- as.numeric(letterFrequency(Final_dataframe_grange$cpg_context_nnncgnnn, letters = "GC", as.prob = TRUE)) * 100
     
     Final_dataframe_grange = data.frame(Final_dataframe_grange)
     rownames(Final_dataframe_grange) = paste0(Final_dataframe_grange$seqnames, "_", Final_dataframe_grange$start)
@@ -257,14 +259,15 @@ Plot_complex_heatmap <- function(List_of_matrices, EM_Seq_names, WGBS_Seq_names,
     
     GC_matrix = Extract_motif_calculate_GC(Coverage_dataframe, nucleotides_backward = 3, nucleotides_forward = 4)
     GC_matrix = as.matrix(GC_matrix["Motif_GC_percentage"])
+	colnames(GC_matrix) = "Motif GC %"
 
     colnames(Beta_matrix) = gsub("^.*_", "", colnames(Beta_matrix))
     colnames(Evenness_matrix) = gsub("^.*_", "", colnames(Evenness_matrix))
     colnames(Abs_delta_matrix) = gsub("^.*_", "", colnames(Abs_delta_matrix))
     colnames(Coverage_matrix) = gsub("^.*_", "", colnames(Coverage_matrix))
     
-	Annotation_groups = c("EM-Seq", "WGBS", "EM-Seq", "WGBS", "EM-Seq", "WGBS", "EM-Seq", "WGBS")
-    ha = HeatmapAnnotation(Seq_method = Annotation_groups, col = list(Seq_method = c("EM-Seq" = "pink", "WGBS" = "royalblue")), show_annotation_name = FALSE)
+	Annotation_groups = c("EM-seq", "WGBS", "EM-seq", "WGBS", "EM-seq", "WGBS", "EM-seq", "WGBS")
+    ha = HeatmapAnnotation(Seq_method = Annotation_groups, col = list(Seq_method = c("EM-seq" = "#1b9e77", "WGBS" = "#7570b3")), show_annotation_name = FALSE, annotation_legend_param = list(title = "Library type"))
 	
 	# Calculate dendrogram. Fill Beta matrix NA with row (CpG) mean for clustering.
 	Beta_matrix_mean_NA_EM_seq = t(apply(Beta_matrix[ , EM_Seq_names], 1, function(x) replace(x, is.na(x), mean(x, na.rm = TRUE))))
@@ -274,11 +277,16 @@ Plot_complex_heatmap <- function(List_of_matrices, EM_Seq_names, WGBS_Seq_names,
 	Beta_matrix_mean_NA = Beta_matrix_mean_NA[ , colnames(Beta_matrix)]
 	Clustering_NA_row = as.dendrogram(hclust(dist(Beta_matrix_mean_NA)))
 	
-    heatmap_1 = Heatmap(Beta_matrix, name = "Beta", column_title = "Beta", row_title = "CpG position", show_row_names = FALSE, cluster_rows = Clustering_NA_row, top_annotation = ha, row_split = 2, border = TRUE)
-    heatmap_2 = Heatmap(Evenness_matrix, name = "Evenness", column_title = "Evenness", row_title = "CpG position", show_row_names = FALSE, top_annotation = ha, border = TRUE)
-    heatmap_3 = Heatmap(Abs_delta_matrix, name = "Absolute delta meth %", column_title = "Absolute delta meth %", row_title = "CpG position", show_row_names = FALSE, top_annotation = ha, border = TRUE)
-    heatmap_4 = Heatmap(log2(Coverage_matrix), name = "Log2 Coverage", column_title = "Log2 Coverage", row_title = "CpG position", show_row_names = FALSE, top_annotation = ha, border = TRUE)
-    heatmap_5 = Heatmap(GC_matrix, name = "Motif GC %", row_title = "CpG position", show_row_names = FALSE, border = TRUE)
+    heatmap_1 = Heatmap(Beta_matrix, col = colorRamp2(seq(min(Beta_matrix, na.rm = TRUE), max(Beta_matrix, na.rm = TRUE), length = 3), c("#4575b4", "#fee090", "#d73027")), na_col = "white",
+						name = "Beta", column_title = "Beta", row_title = "CpG dinucleotide", show_row_names = FALSE, cluster_rows = Clustering_NA_row, top_annotation = ha, row_split = 2, border = TRUE)
+    heatmap_2 = Heatmap(Evenness_matrix, col = colorRamp2(seq(min(Evenness_matrix, na.rm = TRUE), max(Evenness_matrix, na.rm = TRUE), length = 3), c("#4575b4", "#fee090", "#d73027")), heatmap_legend_param = list(at = seq(min(Evenness_matrix, na.rm = TRUE), max(Evenness_matrix, na.rm = TRUE), length = 5)), na_col = "white",
+						name = "Evenness", column_title = "Evenness", row_title = "CpG dinucleotide", show_row_names = FALSE, top_annotation = ha, border = TRUE)
+    heatmap_3 = Heatmap(Abs_delta_matrix, col = colorRamp2(seq(min(Abs_delta_matrix, na.rm = TRUE), max(Abs_delta_matrix, na.rm = TRUE), length = 3), c("#4575b4", "#fee090", "#d73027")), na_col = "white",
+						name = "Absolute delta meth %", column_title = "Absolute delta meth %", row_title = "CpG dinucleotide", show_row_names = FALSE, top_annotation = ha, border = TRUE)
+    heatmap_4 = Heatmap(log2(Coverage_matrix), col = colorRamp2(seq(min(log2(Coverage_matrix), na.rm = TRUE), max(5, na.rm = TRUE), length = 3), c("#4575b4", "#fee090", "#d73027")), heatmap_legend_param = list(at = round(seq(min(log2(Coverage_matrix), na.rm = TRUE), max(log2(Coverage_matrix), na.rm = TRUE), length = 6), 1)), na_col = "white",
+						name = "Log2 Coverage", column_title = "Log2 Coverage", row_title = "CpG dinucleotide", show_row_names = FALSE, top_annotation = ha, border = TRUE)
+    heatmap_5 = Heatmap(GC_matrix, col = colorRamp2(seq(min(GC_matrix, na.rm = TRUE), max(GC_matrix, na.rm = TRUE), length = 3), c("#4575b4", "#fee090", "#d73027")), heatmap_legend_param = list(at = seq(min(GC_matrix, na.rm = TRUE), max(GC_matrix, na.rm = TRUE), length = 7)), na_col = "white",
+						name = "Motif GC %", row_title = "CpG dinucleotide", show_row_names = FALSE, border = TRUE)
 
     png(paste0(File_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
     print(heatmap_1 + heatmap_2 + heatmap_3 + heatmap_4 + heatmap_5)
@@ -354,6 +362,42 @@ Merge_CpGs <- function(Dataframe_list_object) {
 }
 
 #############################################################
+### Function to do split violins
+### Code from: https://stackoverflow.com/questions/35717353/split-violin-plot-with-ggplot2
+#############################################################
+
+GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
+                           draw_group = function(self, data, ..., draw_quantiles = NULL) {
+  data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
+  grp <- data[1, "group"]
+  newdata <- plyr::arrange(transform(data, x = if (grp %% 2 == 1) xminv else xmaxv), if (grp %% 2 == 1) y else -y)
+  newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
+  newdata[c(1, nrow(newdata) - 1, nrow(newdata)), "x"] <- round(newdata[1, "x"])
+
+  if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
+    stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <=
+      1))
+    quantiles <- ggplot2:::create_quantile_segment_frame(data, draw_quantiles)
+    aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
+    aesthetics$alpha <- rep(1, nrow(quantiles))
+    both <- cbind(quantiles, aesthetics)
+    quantile_grob <- GeomPath$draw_panel(both, ...)
+    ggplot2:::ggname("geom_split_violin", grid::grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
+  }
+  else {
+    ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
+  }
+})
+
+geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., 
+                              draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, 
+                              show.legend = NA, inherit.aes = TRUE) {
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, 
+        position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
+        params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
+}
+
+#############################################################
 # # Plot correlation of coverage, motif GC percentage and 
 # # absolute delta meth %
 #############################################################
@@ -387,7 +431,7 @@ Plot_correlation <- function(Input_matrix, EM_Seq_names, WGBS_Seq_names, File_na
 	Data_for_correlation = merge(Abs_data, Beta_data, by = c("Motif_GC_percentage", "Meth_pos", "Condition"))
 	Data_for_correlation = merge(Data_for_correlation, Coverage_data, by = c("Motif_GC_percentage", "Meth_pos", "Condition"))
 	Data_for_correlation$Library_type = "Unknown"
-	Data_for_correlation[grep(paste0("^", EM_Seq_names, "$", collapse = "|"), Data_for_correlation$Condition), "Library_type"] = "EM-Seq"
+	Data_for_correlation[grep(paste0("^", EM_Seq_names, "$", collapse = "|"), Data_for_correlation$Condition), "Library_type"] = "EM-seq"
 	Data_for_correlation[grep(paste0("^", WGBS_Seq_names, "$", collapse = "|"), Data_for_correlation$Condition), "Library_type"] = "WGBS"
 
 	Data_for_correlation$Motif_GC_percentage = as.factor(Data_for_correlation$Motif_GC_percentage)
@@ -406,7 +450,25 @@ Plot_correlation <- function(Input_matrix, EM_Seq_names, WGBS_Seq_names, File_na
 	print(ggplot(Data_for_correlation, aes(Motif_GC_percentage, log2(N))) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(colour = Beta, size = Abs_delta_meth_pct), width = 0.2) +
 		 stat_summary(fun.data = stat_box_data, geom = "text", hjust = 0.5, vjust = 0.9, size=2.5) + labs(x = "Motif GC %", y = "Log2 (Coverage)") + scale_size_continuous(range = c(1, 4)) + theme_bw() + facet_wrap( ~ Library_type))
 	dev.off()
+	
+	p1 = ggplot(Data_for_correlation, aes(Motif_GC_percentage, log2(N))) + geom_boxplot(outlier.shape = NA) + geom_jitter(width = 0.05) +
+			stat_summary(fun.data = stat_box_data, geom = "text", hjust = 0.5, vjust = 0.9, size=2.5) + labs(y = "Log2 (Coverage)") + theme_bw() + theme(axis.title.x=element_blank()) + facet_wrap( ~ Library_type)
+		 
+	p2 = ggplot(Data_for_correlation, aes(Motif_GC_percentage, Beta)) + geom_violin() + geom_jitter(width = 0.05) + labs(x = "Motif GC %", y = "Beta") + theme_bw() + facet_wrap( ~ Library_type)
 
+	p3 = arrangeGrob(p1, p2, nrow = 2)
+	
+	ggsave(file=paste0(File_name, "_2.png"), p3, width = 11.69, height = 8.3, units = "in", dpi = 300)
+	
+	p1 = ggplot(Data_for_correlation, aes(Motif_GC_percentage, log2(N), color = Library_type)) + geom_boxplot(outlier.shape = NA, position = position_dodge(0.8)) + geom_point(position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.8), alpha = 0.6) +
+			labs(y = "Log2 Coverage") + theme_minimal(13) + scale_color_manual(values=c("#1b9e77", "#7570b3")) + labs(color = "Library type") + theme(axis.title.x=element_blank())
+	
+	p2 = ggplot(Data_for_correlation, aes(Motif_GC_percentage, Beta, color = Library_type)) + geom_split_violin() + geom_point(position = position_jitterdodge(jitter.width = 0.05, dodge.width = 0.25), alpha = 0.6) + labs(x = "Motif GC %", y = "Beta", color = "Library type") + theme_minimal(13) + scale_color_manual(values=c("#1b9e77", "#7570b3"))
+	
+	p3 = arrangeGrob(p1, p2, nrow = 2)
+	
+	ggsave(file=paste0(File_name, "_3.png"), p3, width = 11.69, height = 6, units = "in", dpi = 300)
+	
 }
 
 #####  Stand bias analysis for *all existing* and significant CpGs  #####
