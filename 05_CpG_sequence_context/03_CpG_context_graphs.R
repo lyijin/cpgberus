@@ -15,13 +15,13 @@
 library(GenomicRanges)
 library(BSgenome.Hsapiens.UCSC.hg38)
 library(ggplot2)
-library(motifStack)
 library(bsseq)
 
 #####  Load data  #####
 #######################
 
-path_to_cpgerus = "/datasets/work/hb-stopwatch/work/cpgberus"
+path_to_cpgerus = "/scratch/user/uqdguanz/Projects/Meth/cpgberus"
+source(paste0(path_to_cpgerus, "/05_CpG_sequence_context/07_Motif_functions.R"))
 
 # Load data just before analysis below and remove objects after to save on memory
 
@@ -49,96 +49,12 @@ Extract_motif_calculate_GC <- function(Input_dataframe, nucleotides_backward, nu
         
     mcols(Final_dataframe_grange) <- Input_dataframe[c("mu1", "mu2", "diff", "diff.se", "stat", "phi1", "phi2", "pval", "fdr")]
     Final_dataframe_grange$cpg_context_nnncgnnn <- getSeq(BSgenome.Hsapiens.UCSC.hg38, Motif_grange)
-    Final_dataframe_grange$GC_percentage <- as.numeric(letterFrequency(Final_dataframe_grange$cpg_context_nnncgnnn, letters = "GC", as.prob = TRUE))
+    Final_dataframe_grange$GC_percentage <- as.numeric(letterFrequency(Final_dataframe_grange$cpg_context_nnncgnnn, letters = "GC", as.prob = TRUE)) * 100
     Final_dataframe_grange$High_low <- Final_dataframe_grange$diff
     Final_dataframe_grange$High_low[Final_dataframe_grange$High_low >= 0] <- "Low"
     Final_dataframe_grange$High_low[Final_dataframe_grange$High_low <= 0] <- "High"
     
     return(Final_dataframe_grange)
-}
-
-#######################################################################
-# # Function to tabulate nucleotide species for each postion of motif
-#######################################################################
-
-Motif_frequency_table <- function(Granges_object, number_of_granges) {
-
-    counter <<- counter + 1
-    print(paste0("Analysing Grange object: ", as.character(counter), " / ", number_of_granges))
-    
-    # Create empty nucleotide frequency table
-    cpg_context = unique(Granges_object$cpg_context_nnncgnnn)
-    largest_motif = max(nchar(cpg_context))
-
-    column_names = unique(unlist(strsplit(paste(cpg_context,collapse=""), "")))
-    nucleotide_freq = data.frame(matrix(NA, nrow = 0, ncol = length(column_names)))
-    colnames(nucleotide_freq) <- column_names
-    
-    cpg_context = data.frame(Motif = Granges_object$cpg_context_nnncgnnn, Motif_multiplier = 1)
-
-    # Count nucleotide population for first position of all motifs, loop + 1 until end of motif.
-    motif_list = cpg_context$Motif
-    
-    for (i in seq(largest_motif)) {    
-        print(paste0("Motif position: ", i))
-        
-        # Substitue motifs with n nucleotide position, then sum
-        motif_n_elements = substr(motif_list, i, i)
-        cpg_context$Motif <- motif_n_elements
-        motif_table_sum = aggregate(Motif_multiplier ~ Motif, cpg_context, FUN=sum)
-        
-        # Clean up motif_table_sum
-        nucleotide_freq_temp = as.data.frame(t(motif_table_sum))
-        colnames(nucleotide_freq_temp) <- as.character(nucleotide_freq_temp["Motif", ])
-        nucleotide_freq_temp = nucleotide_freq_temp[!(row.names(nucleotide_freq_temp) %in% "Motif"), , drop = FALSE]
-        
-        # Fill in missing nucleotides in nucleotide_freq_temp with 0
-        if (identical(sort(column_names), sort(colnames(nucleotide_freq_temp))) == FALSE) {
-            columns_to_add = column_names[(!(column_names %in% colnames(nucleotide_freq_temp)))]
-            temp_df = data.frame(matrix(0, nrow = 1, ncol = length(columns_to_add)))
-            colnames(temp_df) <- columns_to_add
-            nucleotide_freq_temp = cbind(nucleotide_freq_temp, temp_df)
-        }
-        nucleotide_freq_temp = lapply(nucleotide_freq_temp, as.integer)
-        nucleotide_freq = rbind(nucleotide_freq, nucleotide_freq_temp)
-    }
-
-    return(data.frame(t(nucleotide_freq)))
-}
-
-#######################################################################
-# # Function to convert list of dataframes to motif class pcm
-#######################################################################
-
-Motif_stack_conversion <- function(Motif_list_df, remove_N) {
-
-    #Remove "N" nucleotide if true
-    if (remove_N == TRUE) {
-        Motif_list_df = lapply(Motif_list_df, function(x) x[rownames(x)!="N", ])
-    }
-    
-    # Convert dataframe to motif class pcm
-    for (data_name in names(Motif_list_df)) {
-        Motif_list_df[[data_name]] <- new("pcm", mat=as.matrix(Motif_list_df[[data_name]]), name=data_name)
-    }
-    
-    return(Motif_list_df)
-}
-
-#######################################################################
-# # Funtion to motif plot by patient ID
-#######################################################################
-
-Motif_plot <- function(Motif_list_df, file_name, sample_names, remove_N) {
-
-    pdf(paste0(file_name, ".pdf"), width = 11.69, height = 8.3)
-    
-    for (samp_name in sample_names) {
-        Motif_list_df_temp = Motif_list_df[names(Motif_list_df) == samp_name]
-        plot(Motif_stack_conversion(Motif_list_df_temp, remove_N)[[samp_name]], ic.scale=FALSE, ylab="probability")
-    }
-    
-    dev.off()
 }
 
 #######################################################################
@@ -273,23 +189,23 @@ gc()
 #####  Analysis for *common* significant CpGs between EM-Seq and WGBS (Original) #####
 ######################################################################################
 
-full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/03_outputs/Original_common_CpGs_GC_context")
-dir.create(full_path, recursive = TRUE)
+# full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/03_outputs/Original_common_CpGs_GC_context")
+# dir.create(full_path, recursive = TRUE)
 
-load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Original_CpG_stats_common.RData"))
-# Pre process and plot smoothed significant common CpGs between EM-Seq and WGBS
-temp = Process_and_plot(Original_common_stats_smooth, Original_common_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
-                        file.path(full_path, "Smoothed_significant_CpGs_common"), file.path(full_path, "Smoothed_motifs_common"))
+# load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Original_CpG_stats_common.RData"))
+# # Pre process and plot smoothed significant common CpGs between EM-Seq and WGBS
+# temp = Process_and_plot(Original_common_stats_smooth, Original_common_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
+                        # file.path(full_path, "Smoothed_significant_CpGs_common"), file.path(full_path, "Smoothed_motifs_common"))
 
-rm(temp, Original_common_stats_smooth)
-gc()
+# rm(temp, Original_common_stats_smooth)
+# gc()
 
-# Pre process and plot not smoothed significant common CpGs between EM-Seq and WGBS
-temp = Process_and_plot(Original_common_stats_no_smooth, Original_common_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
-                        file.path(full_path, "Unsmoothed_significant_CpGs_common"), file.path(full_path, "Unsmoothed_motifs_common"))
+# # Pre process and plot not smoothed significant common CpGs between EM-Seq and WGBS
+# temp = Process_and_plot(Original_common_stats_no_smooth, Original_common_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
+                        # file.path(full_path, "Unsmoothed_significant_CpGs_common"), file.path(full_path, "Unsmoothed_motifs_common"))
  
-rm(temp, Original_common_stats_no_smooth, Original_common_bsseq)
-gc()
+# rm(temp, Original_common_stats_no_smooth, Original_common_bsseq)
+# gc()
 
 
 #####  Analysis for *existing* significant CpGs between EM-Seq and WGBS (not rarefied) #####
@@ -339,22 +255,22 @@ gc()
 #####  Analysis for *existing* significant CpGs between EM-Seq and WGBS (Original) #####
 ########################################################################################
 
-full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/03_outputs/Original_existing_CpGs_GC_context")
-dir.create(full_path, recursive = TRUE)
+# full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/03_outputs/Original_existing_CpGs_GC_context")
+# dir.create(full_path, recursive = TRUE)
 
-load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Original_CpG_stats_existing.RData"))
-# Pre process and plot smoothed significant common CpGs between EM-Seq and WGBS
-temp = Process_and_plot(Original_existing_stats_smooth, Original_existing_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
-                        file.path(full_path, "Smoothed_significant_CpGs_existing"), file.path(full_path, "Smoothed_motifs_existing"))
+# load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Original_CpG_stats_existing.RData"))
+# # Pre process and plot smoothed significant common CpGs between EM-Seq and WGBS
+# temp = Process_and_plot(Original_existing_stats_smooth, Original_existing_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
+                        # file.path(full_path, "Smoothed_significant_CpGs_existing"), file.path(full_path, "Smoothed_motifs_existing"))
 
-rm(temp, Original_existing_stats_smooth)
-gc()
+# rm(temp, Original_existing_stats_smooth)
+# gc()
 
-# Pre process and plot not smoothed significant common CpGs between EM-Seq and WGBS
-temp = Process_and_plot(Original_existing_stats_no_smooth, Original_existing_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
-                        file.path(full_path, "Unsmoothed_significant_CpGs_existing"), file.path(full_path, "Unsmoothed_motifs_existing"))
+# # Pre process and plot not smoothed significant common CpGs between EM-Seq and WGBS
+# temp = Process_and_plot(Original_existing_stats_no_smooth, Original_existing_bsseq, c("WR025V1E", "WR025V9E", "WR069V1E", "WR069V9E"), c("WR025V1W", "WR025V9W", "WR069V1W", "WR069V9W"), 
+                        # file.path(full_path, "Unsmoothed_significant_CpGs_existing"), file.path(full_path, "Unsmoothed_motifs_existing"))
 
-rm(temp, Original_existing_stats_no_smooth, Original_existing_bsseq)
-gc()
+# rm(temp, Original_existing_stats_no_smooth, Original_existing_bsseq)
+# gc()
 
 quit(save = "no")
