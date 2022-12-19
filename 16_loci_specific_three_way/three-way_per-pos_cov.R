@@ -39,10 +39,10 @@ lm_eqn <- function(df, x, y) {
   # modified from https://stackoverflow.com/questions/7549694/add-regression-line-equation-and-r2-on-graph
   model <- lm(as.formula(paste(y, '~', x)), df)
   eq <- substitute(
-    italic(y) == c + m %.% italic(x)*','~italic(r)^2 == r2*','~italic(p) == pval*','~italic(n) == n_df,
+    italic(y) == c + m %.% italic(x)*','~italic(r) == rval*','~italic(p) == pval*','~italic(n) == n_df,
     list(c = format(unname(coef(model)[1]), digits=3),
          m = format(unname(coef(model)[2]), digits=3),
-         r2 = format(summary(model)$r.squared, digits=4),
+         rval = format(cor(df[[x]], df[[y]]), digits=4),
          pval = format(summary(model)$coefficients[2,4], digits=1),
          n_df = format(nrow(df), big.mark=',')))
   as.character(as.expression(eq))
@@ -157,7 +157,7 @@ ont_wide_df <- reshape(ont_df, idvar='pos', timevar='sample_id', direction='wide
 colnames(ont_wide_df) <- gsub('^cov.', '', colnames(ont_wide_df))
 ont_wide_df <- ont_wide_df[order(ont_wide_df$pos), ]
 
-# check how many rows have NA beta values in ANY of the four datasets (driven
+# check how many rows have NA coverage values in ANY of the four datasets (driven
 # by insufficient coverage)
 diag_message('Number of incomplete rows in `emseq_wide_df`: ',
              sum(!complete.cases(emseq_wide_df)))
@@ -271,7 +271,7 @@ long_df <- wide_df[, c('meanER', 'meanWR', 'meanO')]
 long_df$pos <- as.numeric(rownames(long_df))
 long_df <- reshape(long_df, direction='long',
                    idvar='pos',
-                   varying=c('meanER', 'meanWR', 'meanO'), v.name='beta',
+                   varying=c('meanER', 'meanWR', 'meanO'), v.name='cov',
                    timevar='method', times=c('EM-seq', 'WGBS', 'ONT Cas9'))
 
 # sort by pos, reset row numbering
@@ -299,8 +299,8 @@ gcpct_df$gcpct <- unlist(lapply(
 gcpct_df$pos <- gcpct_df$pos - 1000
 
 #+ fig.width=10, fig.height=5
-# plot beta across loci
-g1 <- ggplot(long_df, aes(x=pos, y=beta, color=method)) +
+# plot cov across loci
+g1 <- ggplot(long_df, aes(x=pos, y=cov, color=method)) +
   geom_point(size=1, alpha=0.1) +
   geom_smooth(method='loess', span=0.1) +
   scale_color_manual(values=c(EMSEQ_COLOR, ONT_COLOR, WGBS_COLOR)) +

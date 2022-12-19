@@ -36,10 +36,10 @@ lm_eqn <- function(df, x, y) {
   # modified from https://stackoverflow.com/questions/7549694/add-regression-line-equation-and-r2-on-graph
   model <- lm(as.formula(paste(y, '~', x)), df)
   eq <- substitute(
-    italic(y) == c + m %.% italic(x)*','~italic(r)^2 == r2*','~italic(p) == pval*','~italic(n) == n_df,
+    italic(y) == c + m %.% italic(x)*','~italic(r) == rval*','~italic(p) == pval*','~italic(n) == n_df,
     list(c = format(unname(coef(model)[1]), digits=3),
          m = format(unname(coef(model)[2]), digits=3),
-         r2 = format(summary(model)$r.squared, digits=4),
+         rval = format(cor(df[[x]], df[[y]]), digits=4),
          pval = format(summary(model)$coefficients[2,4], digits=1),
          n_df = format(nrow(df), big.mark=',')))
   as.character(as.expression(eq))
@@ -64,13 +64,13 @@ ranges(epic_gr)[strand(epic_gr) == '-'] <- shift(ranges(epic_gr)[strand(epic_gr)
 head(epic_gr, 10)
 getSeq(BSgenome.Hsapiens.UCSC.hg38, head(epic_gr, 10))
 
-# change beta in EPIC GRanges into methylation levels (x 100%)
-values(epic_gr) <- as.matrix(values(epic_gr)) * 100
-epic_gr
-
 # load per-position data from EM-seq and WGBS
-cov_df <- read.delim('rarefied.coverages.tsv.gz')
-beta_df <- read.delim('rarefied.methpcts.tsv.gz')
+cov_df <- read.delim('../04_parse_bismark_covs/rarefied.coverages.tsv.gz')
+beta_df <- read.delim('../04_parse_bismark_covs/rarefied.methpcts.tsv.gz')
+
+# convert meth % values (0-100) in `beta_df` to betas (0-1)
+beta_df[4:ncol(beta_df)] <- beta_df[4:ncol(beta_df)] / 100
+head(beta_df)
 
 # filtering `beta_df` for positions with min 5 coverage in ALL 8 rarefied
 # samples was too stringent: initial union of all 55m positions (covered at
@@ -194,7 +194,7 @@ ggplot(wide_df, aes(x=meanER, y=meanWR)) +
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanER', 'meanWR'), parse=TRUE) +
-  ggtitle('Per-position methylation levels, EM-seq vs. WGBS') +
+  ggtitle('Per-position beta values, EM-seq vs. WGBS') +
   xlab('EM-seq') +
   ylab('WGBS') +
   theme_minimal(12)
@@ -205,7 +205,7 @@ ggplot(wide_df, aes(x=meanER, y=meanI)) +
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanER', 'meanI'), parse=TRUE) +
-  ggtitle('Per-position methylation levels, EM-seq vs. EPIC') +
+  ggtitle('Per-position beta values, EM-seq vs. EPIC') +
   xlab('EM-seq') +
   ylab('EPIC') +
   theme_minimal(12)
@@ -216,7 +216,7 @@ ggplot(wide_df, aes(x=meanWR, y=meanI)) +
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanWR', 'meanI'), parse=TRUE) +
-  ggtitle('Per-position methylation levels, WGBS vs. EPIC') +
+  ggtitle('Per-position beta values, WGBS vs. EPIC') +
   xlab('WGBS') +
   ylab('EPIC') +
   theme_minimal(12)
@@ -250,12 +250,12 @@ g3 <- ggplot(wide_df, aes(x=meanER, y=meanWR, color=gcpct)) +
   scale_color_distiller('GC%', palette='RdYlBu', limits=c(30, 70),
                         guide=guide_colorbar(direction='horizontal')) +
   geom_line(stat='smooth', method=lm, formula='y ~ x', alpha=0.3) +
-  coord_cartesian(xlim=c(0, 100), ylim=c(0, 100)) +
+  coord_cartesian(xlim=c(0, 1), ylim=c(0, 1)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanER', 'meanWR'), parse=TRUE) +
-  ggtitle('Per-position methylation levels') +
-  xlab('EM-seq (%)') +
-  ylab('WGBS (%)') +
+  ggtitle('Per-position beta values') +
+  xlab('EM-seq') +
+  ylab('WGBS') +
   theme_minimal(12) +
   theme(legend.position=c(0.75, 0.1))
 
@@ -265,12 +265,12 @@ g4 <- ggplot(wide_df, aes(x=meanER, y=meanI, color=gcpct)) +
   scale_color_distiller('GC%', palette='RdYlBu', limits=c(30, 70),
                         guide=guide_colorbar(direction='horizontal')) +
   geom_line(stat='smooth', method=lm, formula='y ~ x', alpha=0.3) +
-  coord_cartesian(xlim=c(0, 100), ylim=c(0, 100)) +
+  coord_cartesian(xlim=c(0, 1), ylim=c(0, 1)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanER', 'meanI'), parse=TRUE) +
   ggtitle('') +
-  xlab('EM-seq (%)') +
-  ylab('EPIC (%)') +
+  xlab('EM-seq') +
+  ylab('EPIC') +
   theme_minimal() +
   theme(legend.position=c(0.75, 0.1))
 
@@ -280,12 +280,12 @@ g5 <- ggplot(wide_df, aes(x=meanWR, y=meanI, color=gcpct)) +
   scale_color_distiller('GC%', palette='RdYlBu', limits=c(30, 70),
                         guide=guide_colorbar(direction='horizontal')) +
   geom_line(stat='smooth', method=lm, formula='y ~ x', alpha=0.3) +
-  coord_cartesian(xlim=c(0, 100), ylim=c(0, 100)) +
+  coord_cartesian(xlim=c(0, 1), ylim=c(0, 1)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanWR', 'meanI'), parse=TRUE) +
   ggtitle('') +
-  xlab('WGBS (%)') +
-  ylab('EPIC (%)') +
+  xlab('WGBS') +
+  ylab('EPIC') +
   theme_minimal() +
   theme(legend.position=c(0.75, 0.1))
 
@@ -295,42 +295,96 @@ summary(lm(wide_df$delta_wgbs_emseq ~ wide_df$gcpct))
 g6 <- ggplot(wide_df, aes(x=gcpct, y=delta_wgbs_emseq)) +
   geom_point(size=0.5, alpha=0.05) + 
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
-  coord_cartesian(xlim=c(20, 80), ylim=c(-50, 50)) +
+  coord_cartesian(xlim=c(20, 80), ylim=c(-0.5, 0.5)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'gcpct', 'delta_wgbs_emseq'), parse=TRUE) +
-  ggtitle('Per-position residual methylation levels vs. GC%') +
+  ggtitle('Per-position residual beta values vs. GC%') +
   xlab('GC%') +
-  ylab('Residual WGBS - EM-seq (%)') +
+  ylab('Residual WGBS - EM-seq') +
   theme_minimal(12)
 
 wide_df$delta_ont_emseq <- wide_df$meanI - wide_df$meanER
 g7 <- ggplot(wide_df, aes(x=gcpct, y=delta_ont_emseq)) +
   geom_point(size=0.5, alpha=0.05) + 
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
-  coord_cartesian(xlim=c(20, 80), ylim=c(-50, 50)) +
+  coord_cartesian(xlim=c(20, 80), ylim=c(-0.5, 0.5)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'gcpct', 'delta_ont_emseq'), parse=TRUE) +
   ggtitle('') +
   xlab('GC%') +
-  ylab('Residual EPIC - EM-seq (%)') +
+  ylab('Residual EPIC - EM-seq') +
   theme_minimal(12)
 
 wide_df$delta_ont_wgbs <- wide_df$meanI - wide_df$meanWR
 g8 <- ggplot(wide_df, aes(x=gcpct, y=delta_ont_wgbs)) +
   geom_point(size=0.5, alpha=0.05) + 
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
-  coord_cartesian(xlim=c(20, 80), ylim=c(-50, 50)) +
+  coord_cartesian(xlim=c(20, 80), ylim=c(-0.5, 0.5)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'gcpct', 'delta_ont_wgbs'), parse=TRUE) +
   ggtitle('') +
   xlab('GC%') +
-  ylab('Residual EPIC - WGBS (%)') +
+  ylab('Residual EPIC - WGBS') +
   theme_minimal(12)
 
 #+ fig.width=10, fig.height=12
 plot_grid(g3, g6, g4, g7, g5, g8, ncol=2, rel_heights=c(1, 1, 1),
           labels=c('A', 'B', 'C', 'D', 'E', 'F'))
 ggsave('three-way.beta_and_gc.pdf', width=10, height=12)
+
+# sanity check: confirm that scatterplots, whilst slightly overplotted, are
+# visually accurate--replots of these with fewer points (10k) should show
+# similar trends
+set.seed(42)
+wide_df_10k <- wide_df[sample(nrow(wide_df), 10000), ]
+g3_10k <- ggplot(wide_df_10k, aes(x=meanER, y=meanWR, color=gcpct)) +
+  geom_point(size=1, alpha=0.2) + 
+  scale_color_distiller('GC%', palette='RdYlBu', limits=c(30, 70),
+                        guide=guide_colorbar(direction='horizontal')) +
+  geom_line(stat='smooth', method=lm, formula='y ~ x', alpha=0.3) +
+  coord_cartesian(xlim=c(0, 1), ylim=c(0, 1)) +
+  annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
+           label=lm_eqn(wide_df_10k, 'meanER', 'meanWR'), parse=TRUE) +
+  ggtitle('Per-position methylation levels') +
+  xlab('EM-seq (%)') +
+  ylab('WGBS (%)') +
+  theme_minimal(12) +
+  theme(legend.position=c(0.75, 0.1))
+
+# plot EM-seq vs. EPIC and colour points by GC%
+g4_10k <- ggplot(wide_df_10k, aes(x=meanER, y=meanI, color=gcpct)) +
+  geom_point(size=1, alpha=0.2) + 
+  scale_color_distiller('GC%', palette='RdYlBu', limits=c(30, 70),
+                        guide=guide_colorbar(direction='horizontal')) +
+  geom_line(stat='smooth', method=lm, formula='y ~ x', alpha=0.3) +
+  coord_cartesian(xlim=c(0, 1), ylim=c(0, 1)) +
+  annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
+           label=lm_eqn(wide_df_10k, 'meanER', 'meanI'), parse=TRUE) +
+  ggtitle('') +
+  xlab('EM-seq (%)') +
+  ylab('EPIC (%)') +
+  theme_minimal() +
+  theme(legend.position=c(0.75, 0.1))
+
+# plot WGBS vs. EPIC and colour points by GC%
+g5_10k <- ggplot(wide_df_10k, aes(x=meanWR, y=meanI, color=gcpct)) +
+  geom_point(size=1, alpha=0.2) + 
+  scale_color_distiller('GC%', palette='RdYlBu', limits=c(30, 70),
+                        guide=guide_colorbar(direction='horizontal')) +
+  geom_line(stat='smooth', method=lm, formula='y ~ x', alpha=0.3) +
+  coord_cartesian(xlim=c(0, 1), ylim=c(0, 1)) +
+  annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
+           label=lm_eqn(wide_df_10k, 'meanWR', 'meanI'), parse=TRUE) +
+  ggtitle('') +
+  xlab('WGBS (%)') +
+  ylab('EPIC (%)') +
+  theme_minimal() +
+  theme(legend.position=c(0.75, 0.1))
+
+plot_grid(g3, g3_10k, g4, g4_10k, g5, g5_10k, ncol=2, rel_heights=c(1, 1, 1),
+          labels=c('A', 'B', 'C', 'D', 'E', 'F'))
+# ... uh, looks ok to me?
+
 
 # hmm. there's some interesting trends in the high GC% region. how many positions
 # have high GC% in its immediate context?

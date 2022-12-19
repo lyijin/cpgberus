@@ -39,10 +39,10 @@ lm_eqn <- function(df, x, y) {
   # modified from https://stackoverflow.com/questions/7549694/add-regression-line-equation-and-r2-on-graph
   model <- lm(as.formula(paste(y, '~', x)), df)
   eq <- substitute(
-    italic(y) == c + m %.% italic(x)*','~italic(r)^2 == r2*','~italic(p) == pval*','~italic(n) == n_df,
+    italic(y) == c + m %.% italic(x)*','~italic(r) == rval*','~italic(p) == pval*','~italic(n) == n_df,
     list(c = format(unname(coef(model)[1]), digits=3),
          m = format(unname(coef(model)[2]), digits=3),
-         r2 = format(summary(model)$r.squared, digits=4),
+         rval = format(cor(df[[x]], df[[y]]), digits=4),
          pval = format(summary(model)$coefficients[2,4], digits=1),
          n_df = format(nrow(df), big.mark=',')))
   as.character(as.expression(eq))
@@ -144,6 +144,11 @@ emseq_df <- emseq_df[, c('pos', 'beta', 'sample_id')]
 wgbs_df <- wgbs_df[, c('pos', 'beta', 'sample_id')]
 ont_df <- ont_df[, c('pos', 'beta', 'sample_id')]
 
+# convert methylation levels % [0-100] to betas [0-1]
+emseq_df$beta <- emseq_df$beta / 100
+wgbs_df$beta <- wgbs_df$beta / 100
+ont_df$beta <- ont_df$beta / 100
+
 # convert long-to-wide
 emseq_wide_df <- reshape(emseq_df, idvar='pos', timevar='sample_id', direction='wide')
 colnames(emseq_wide_df) <- gsub('^beta.', '', colnames(emseq_wide_df))
@@ -166,7 +171,7 @@ diag_message('Number of incomplete rows in `wgbs_wide_df`: ',
 diag_message('Number of incomplete rows in `ont_wide_df`: ',
              sum(!complete.cases(ont_wide_df)))
 
-# hmm, not a lot. drop positions where methylation levels were NA in ANY of the
+# hmm, not a lot. drop positions where beta values were NA in ANY of the
 # four datasets
 emseq_wide_df <- emseq_wide_df[complete.cases(emseq_wide_df), ]
 wgbs_wide_df <- wgbs_wide_df[complete.cases(wgbs_wide_df), ]
@@ -190,7 +195,7 @@ wide_df <- wide_df[complete.cases(wide_df), ]
 rownames(wide_df) <- wide_df$pos
 wide_df <- wide_df[, -1]
 
-# calculate per-position MEAN methylation levels for every method separately
+# calculate per-position MEAN beta values for every method separately
 wide_df$meanER <- rowMeans(wide_df[, grepl('ER$', colnames(wide_df))])
 wide_df$meanWR <- rowMeans(wide_df[, grepl('WR$', colnames(wide_df))])
 wide_df$meanO <- rowMeans(wide_df[, grepl('O$', colnames(wide_df))])
@@ -239,7 +244,7 @@ ggplot(wide_df, aes(x=meanER, y=meanWR)) +
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanER', 'meanWR'), parse=TRUE) +
-  ggtitle('Per-position methylation levels, EM-seq vs. WGBS') +
+  ggtitle('Per-position beta values, EM-seq vs. WGBS') +
   xlab('EM-seq') +
   ylab('WGBS') +
   theme_minimal(12)
@@ -250,7 +255,7 @@ ggplot(wide_df, aes(x=meanER, y=meanO)) +
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanER', 'meanO'), parse=TRUE) +
-  ggtitle('Per-position methylation levels, EM-seq vs. ONT Cas9') +
+  ggtitle('Per-position beta values, EM-seq vs. ONT Cas9') +
   xlab('EM-seq') +
   ylab('ONT Cas9') +
   theme_minimal(12)
@@ -261,7 +266,7 @@ ggplot(wide_df, aes(x=meanWR, y=meanO)) +
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanWR', 'meanO'), parse=TRUE) +
-  ggtitle('Per-position methylation levels, WGBS vs. ONT Cas9') +
+  ggtitle('Per-position beta values, WGBS vs. ONT Cas9') +
   xlab('WGBS') +
   ylab('ONT Cas9') +
   theme_minimal(12)
@@ -305,9 +310,9 @@ g1 <- ggplot(long_df, aes(x=pos, y=beta, color=method)) +
   geom_smooth(method='loess', span=0.1) +
   scale_color_manual(values=c(EMSEQ_COLOR, ONT_COLOR, WGBS_COLOR)) +
   coord_cartesian(xlim=c(0, 13332)) +
-  ggtitle('Methylation levels and GC% across 45S loci') +
+  ggtitle('Beta values and GC% across 45S loci') +
   xlab('Position') +
-  ylab('Methylation level (%)') +
+  ylab(expression(beta)) +
   theme_minimal(12) +
   theme(legend.position='top',
         axis.title.x=element_blank(),
@@ -340,12 +345,12 @@ g3 <- ggplot(wide_df, aes(x=meanER, y=meanWR, color=gcpct)) +
   scale_color_distiller('GC%', palette='RdYlBu', limits=c(55, 95),
                         guide=guide_colorbar(direction='horizontal')) +
   geom_line(stat='smooth', method=lm, formula='y ~ x', alpha=0.3) +
-  coord_cartesian(xlim=c(0, 55), ylim=c(0, 55)) +
+  coord_cartesian(xlim=c(0, 0.55), ylim=c(0, 0.55)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanER', 'meanWR'), parse=TRUE) +
-  ggtitle('Per-position methylation levels') +
-  xlab('EM-seq (%)') +
-  ylab('WGBS (%)') +
+  ggtitle('Per-position beta values') +
+  xlab('EM-seq') +
+  ylab('WGBS') +
   theme_minimal(12) +
   theme(legend.position=c(0.75, 0.1))
 
@@ -355,12 +360,12 @@ g4 <- ggplot(wide_df, aes(x=meanER, y=meanO, color=gcpct)) +
   scale_color_distiller('GC%', palette='RdYlBu', limits=c(55, 95),
                         guide=guide_colorbar(direction='horizontal')) +
   geom_line(stat='smooth', method=lm, formula='y ~ x', alpha=0.3) +
-  coord_cartesian(xlim=c(0, 55), ylim=c(0, 55)) +
+  coord_cartesian(xlim=c(0, 0.55), ylim=c(0, 0.55)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanER', 'meanO'), parse=TRUE) +
   ggtitle('') +
-  xlab('EM-seq (%)') +
-  ylab('ONT Cas9 (%)') +
+  xlab('EM-seq') +
+  ylab('ONT Cas9') +
   theme_minimal() +
   theme(legend.position=c(0.75, 0.1))
 
@@ -370,12 +375,12 @@ g5 <- ggplot(wide_df, aes(x=meanWR, y=meanO, color=gcpct)) +
   scale_color_distiller('GC%', palette='RdYlBu', limits=c(55, 95),
                         guide=guide_colorbar(direction='horizontal')) +
   geom_line(stat='smooth', method=lm, formula='y ~ x', alpha=0.3) +
-  coord_cartesian(xlim=c(0, 55), ylim=c(0, 55)) +
+  coord_cartesian(xlim=c(0, 0.55), ylim=c(0, 0.55)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'meanWR', 'meanO'), parse=TRUE) +
   ggtitle('') +
-  xlab('WGBS (%)') +
-  ylab('ONT Cas9 (%)') +
+  xlab('WGBS') +
+  ylab('ONT Cas9') +
   theme_minimal() +
   theme(legend.position=c(0.75, 0.1))
 
@@ -385,36 +390,36 @@ summary(lm(wide_df$delta_wgbs_emseq ~ wide_df$gcpct))
 g6 <- ggplot(wide_df, aes(x=gcpct, y=delta_wgbs_emseq)) +
   geom_point(size=1, alpha=0.2) + 
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
-  coord_cartesian(xlim=c(40, 95), ylim=c(-20, 40)) +
+  coord_cartesian(xlim=c(40, 95), ylim=c(-0.2, 0.4)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'gcpct', 'delta_wgbs_emseq'), parse=TRUE) +
-  ggtitle('Per-position residual methylation levels vs. GC%') +
+  ggtitle('Per-position residual beta values vs. GC%') +
   xlab('GC%') +
-  ylab('Residual WGBS - EM-seq (%)') +
+  ylab('Residual WGBS - EM-seq') +
   theme_minimal(12)
 
 wide_df$delta_ont_emseq <- wide_df$meanO - wide_df$meanER
 g7 <- ggplot(wide_df, aes(x=gcpct, y=delta_ont_emseq)) +
   geom_point(size=1, alpha=0.2) + 
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
-  coord_cartesian(xlim=c(40, 95), ylim=c(-20, 40)) +
+  coord_cartesian(xlim=c(40, 95), ylim=c(-0.2, 0.4)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'gcpct', 'delta_ont_emseq'), parse=TRUE) +
   ggtitle('') +
   xlab('GC%') +
-  ylab('Residual ONT Cas9 - EM-seq (%)') +
+  ylab('Residual ONT Cas9 - EM-seq') +
   theme_minimal(12)
 
 wide_df$delta_ont_wgbs <- wide_df$meanO - wide_df$meanWR
 g8 <- ggplot(wide_df, aes(x=gcpct, y=delta_ont_wgbs)) +
   geom_point(size=1, alpha=0.2) + 
   geom_smooth(method=lm, formula='y ~ x', alpha=0.5) +
-  coord_cartesian(xlim=c(40, 95), ylim=c(-20, 40)) +
+  coord_cartesian(xlim=c(40, 95), ylim=c(-0.2, 0.4)) +
   annotate('text', x=-Inf, y=Inf, hjust=0, vjust=1,
            label=lm_eqn(wide_df, 'gcpct', 'delta_ont_wgbs'), parse=TRUE) +
   ggtitle('') +
   xlab('GC%') +
-  ylab('Residual ONT Cas9 - WGBS (%)') +
+  ylab('Residual ONT Cas9 - WGBS') +
   theme_minimal(12)
 
 #+ fig.width=10, fig.height=12
