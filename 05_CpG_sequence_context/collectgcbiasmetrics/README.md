@@ -1,4 +1,4 @@
-# `07_parse_bismark_bams/` folder #
+# `collectgcbias/` folder #
 
 Folder contains files obtained from parsing the deduplicated BAMs produced by the `bismark` pipeline, specifically the `deduplicated_bismark` step.
 
