@@ -1,6 +1,6 @@
 # Processing ONT data for this project #
 
-The raw ONT data produced for this project is too large to be uploaded here--please download it from \<insert CSIRO DAP link\>.
+The raw ONT data produced for this project is too large to be uploaded here--please download it from TODO:insert CSIRO DAP.
 
 The cool/good thing about ONT data is that you get separate folders for FAST5 (raw raw data) and basecalled FASTQ data, binned into "PASS" or "FAIL" for each type of data.
 
@@ -8,9 +8,11 @@ As relative newcomers to this type of data, we did not second-guess ONT's calls,
 
 The coverage calling from FASTQ is relatively straightforward: use FASTQs and map them against reference sequences. Exact commands are in the `15_ont_minimap2_coverage/` folder.
 
-This folder provides "guidance" for those who dare brave the ONT dungeons and perform direct methylation calling from ONT reads. Here be dragons. Guidance likely to be out-of-date really quickly due to the speed of ONT updating their bioinformatics tools, but well at least we've done our part in easing replicability of science.
+The direct methylation calling from FAST5 is... not so easy. Read on, but remember, here be dragons. Guidance likely to be out-of-date really quickly due to the speed of ONT updating their bioinformatics tools, but well at least we've done our part in easing replicability of science.
 
-# Setting up `megalodon` on a `slurm` cluster #
+If this is too much of a headache, the scripts in `16_loci_specific_three_way/` will work with the intermediate files we provide in that folder.
+
+## Setting up `megalodon` on a `slurm` cluster ##
 
 We ran `megalodon` on the CSIRO `slurm` cluster.
 
