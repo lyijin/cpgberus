@@ -168,7 +168,7 @@ corr_values_as_long_df <- function(sliced_wide_df, feature_label) {
 load('../data/gencode.v38.annotation_2021-08-04.RData')
 
 # load processed EPIC data
-load('epic_betas_hg38.RData')
+load('../02_process_methepic_data/epic_betas_hg38.RData')
 
 # fix EPIC GRanges--all of the current positions refer to the 'C' on the Watson
 # strand. this is correct when strand is '+', but not correct when strand is

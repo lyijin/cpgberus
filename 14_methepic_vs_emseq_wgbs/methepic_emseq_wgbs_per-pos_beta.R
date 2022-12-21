@@ -53,7 +53,7 @@ pct_of_ones <- function(binary_string) {
 }
 
 # load processed EPIC data
-load('epic_betas_hg38.RData')
+load('../02_process_methepic_data/epic_betas_hg38.RData')
 
 # fix EPIC GRanges--all of the current positions refer to the 'C' on the Watson
 # strand. this is correct when strand is '+', but not correct when strand is
