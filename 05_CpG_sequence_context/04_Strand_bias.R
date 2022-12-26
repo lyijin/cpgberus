@@ -246,12 +246,20 @@ Extract_motif_calculate_GC <- function(Input_dataframe, nucleotides_backward, nu
 
 Plot_complex_heatmap <- function(List_of_matrices, EM_Seq_names, WGBS_Seq_names, File_name) {
 
-    Beta_matrix = List_of_matrices$Beta
-    Evenness_matrix = List_of_matrices$evenness
-    Abs_delta_matrix = List_of_matrices$abs_delta_meth_pct
-    Coverage_matrix = List_of_matrices$N
-    # Coverage_matrix_delta = as.matrix(data.frame(WR025V1 = Coverage_matrix[,"N_WR025V1E"] - Coverage_matrix[,"N_WR025V1W"], WR025V9 = Coverage_matrix[,"N_WR025V9E"] - Coverage_matrix[,"N_WR025V9W"],
-                                        # WR069V1= Coverage_matrix[,"N_WR069V1E"] - Coverage_matrix[,"N_WR069V1W"], WR069V9 = Coverage_matrix[,"N_WR069V9E"] - Coverage_matrix[,"N_WR069V9W"]))
+	# Switch to change Abs_delta_matrix to Abs_delta_beta
+	if ("abs_delta_meth_pct" %in% names(List_of_matrices)) {
+		Beta_matrix = List_of_matrices$Beta
+		Evenness_matrix = List_of_matrices$evenness
+		Abs_delta_matrix = List_of_matrices$abs_delta_meth_pct
+		Coverage_matrix = List_of_matrices$N
+		Abs_delta_matrix_heatmap_annotation = "Absolute delta meth %"
+    } else if ("abs_delta_beta" %in% names(List_of_matrices)) {
+		Beta_matrix = List_of_matrices$Beta
+		Evenness_matrix = List_of_matrices$evenness
+		Abs_delta_matrix = List_of_matrices$abs_delta_beta
+		Coverage_matrix = List_of_matrices$N
+		Abs_delta_matrix_heatmap_annotation = "Absolute delta beta"
+	}
     
     seqnames_var = sapply(strsplit(rownames(List_of_matrices$Beta), "_"), "[", 1)
     start_var = as.numeric(sapply(strsplit(rownames(List_of_matrices$Beta), "_"), "[", -1))
@@ -282,14 +290,14 @@ Plot_complex_heatmap <- function(List_of_matrices, EM_Seq_names, WGBS_Seq_names,
     heatmap_2 = Heatmap(Evenness_matrix, col = colorRamp2(seq(min(Evenness_matrix, na.rm = TRUE), max(Evenness_matrix, na.rm = TRUE), length = 3), c("#4575b4", "#fee090", "#d73027")), heatmap_legend_param = list(at = seq(min(Evenness_matrix, na.rm = TRUE), max(Evenness_matrix, na.rm = TRUE), length = 5)), na_col = "white",
 						name = "Evenness", column_title = "Evenness", row_title = "CpG dinucleotide", show_row_names = FALSE, top_annotation = ha, border = TRUE)
     heatmap_3 = Heatmap(Abs_delta_matrix, col = colorRamp2(seq(min(Abs_delta_matrix, na.rm = TRUE), max(Abs_delta_matrix, na.rm = TRUE), length = 3), c("#4575b4", "#fee090", "#d73027")), na_col = "white",
-						name = "Absolute delta meth %", column_title = "Absolute delta meth %", row_title = "CpG dinucleotide", show_row_names = FALSE, top_annotation = ha, border = TRUE)
+						name = Abs_delta_matrix_heatmap_annotation, column_title = Abs_delta_matrix_heatmap_annotation, row_title = "CpG dinucleotide", show_row_names = FALSE, top_annotation = ha, border = TRUE)
     heatmap_4 = Heatmap(log2(Coverage_matrix), col = colorRamp2(seq(min(log2(Coverage_matrix), na.rm = TRUE), max(5, na.rm = TRUE), length = 3), c("#4575b4", "#fee090", "#d73027")), heatmap_legend_param = list(at = round(seq(min(log2(Coverage_matrix), na.rm = TRUE), max(log2(Coverage_matrix), na.rm = TRUE), length = 6), 1)), na_col = "white",
 						name = "Log2 Coverage", column_title = "Log2 Coverage", row_title = "CpG dinucleotide", show_row_names = FALSE, top_annotation = ha, border = TRUE)
     heatmap_5 = Heatmap(GC_matrix, col = colorRamp2(seq(min(GC_matrix, na.rm = TRUE), max(GC_matrix, na.rm = TRUE), length = 3), c("#4575b4", "#fee090", "#d73027")), heatmap_legend_param = list(at = seq(min(GC_matrix, na.rm = TRUE), max(GC_matrix, na.rm = TRUE), length = 7)), na_col = "white",
 						name = "Motif GC %", row_title = "CpG dinucleotide", show_row_names = FALSE, border = TRUE)
 
     png(paste0(File_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
-    print(heatmap_1 + heatmap_2 + heatmap_3 + heatmap_4 + heatmap_5)
+    print(heatmap_1 + heatmap_3 + heatmap_4 + heatmap_2 + heatmap_5)
     dev.off()
 }
 
@@ -404,6 +412,13 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
 
 Plot_correlation <- function(Input_matrix, EM_Seq_names, WGBS_Seq_names, File_name) {
 	
+	# Switch to change the data for Abs_delta_matrix to Abs_delta_beta
+	if ("abs_delta_meth_pct" %in% names(Input_matrix)) {
+		Variable_annotation = "abs_delta_meth_pct"
+    } else if ("abs_delta_beta" %in% names(Input_matrix)) {
+		Variable_annotation = "abs_delta_beta"
+	}
+	
 	seqnames_var = sapply(strsplit(rownames(Input_matrix$Beta), "_"), "[", 1)
 	start_var = as.numeric(sapply(strsplit(rownames(Input_matrix$Beta), "_"), "[", -1))
 	Coverage_dataframe = data.frame(seqnames = seqnames_var, start = start_var)
@@ -411,20 +426,20 @@ Plot_correlation <- function(Input_matrix, EM_Seq_names, WGBS_Seq_names, File_na
 	GC_matrix = Extract_motif_calculate_GC(Coverage_dataframe, nucleotides_backward = 3, nucleotides_forward = 4)
 	GC_matrix = as.matrix(GC_matrix["Motif_GC_percentage"])
 							
-	Data_for_correlation = data.frame(cbind(Input_matrix$Beta, Input_matrix$abs_delta_meth_pct, Input_matrix$N, GC_matrix))
+	Data_for_correlation = data.frame(cbind(Input_matrix$Beta, Input_matrix[[Variable_annotation]], Input_matrix$N, GC_matrix))
 	Data_for_correlation$Meth_pos = rownames(Data_for_correlation)
 
 	Data_for_correlation = melt(Data_for_correlation, id.vars=colnames(Data_for_correlation)[grep("Motif_GC_percentage|Meth_pos", colnames(Data_for_correlation))], variable.name="Condition", value.name="Condition_value")
 
-	Abs_data = Data_for_correlation[grep("^abs_delta_meth_pct_", Data_for_correlation$Condition), ]
+	Abs_data = Data_for_correlation[grep(paste0("^", Variable_annotation, "_"), Data_for_correlation$Condition), ]
 	Beta_data = Data_for_correlation[grep("^Beta_", Data_for_correlation$Condition), ]
 	Coverage_data = Data_for_correlation[grep("^N_", Data_for_correlation$Condition), ]
 
-	colnames(Abs_data) = gsub("^Condition_value$", "Abs_delta_meth_pct", colnames(Abs_data))
+	colnames(Abs_data) = gsub("^Condition_value$", Variable_annotation, colnames(Abs_data))
 	colnames(Beta_data) = gsub("^Condition_value$", "Beta", colnames(Beta_data))
 	colnames(Coverage_data) = gsub("^Condition_value$", "N", colnames(Coverage_data))
 
-	Abs_data$Condition = gsub("^abs_delta_meth_pct_", "", Abs_data$Condition)
+	Abs_data$Condition = gsub(paste0("^", Variable_annotation, "_"), "", Abs_data$Condition)
 	Beta_data$Condition = gsub("^Beta_", "", Beta_data$Condition)
 	Coverage_data$Condition =  gsub("^N_", "", Coverage_data$Condition)
 
@@ -447,8 +462,8 @@ Plot_correlation <- function(Input_matrix, EM_Seq_names, WGBS_Seq_names, File_na
 	}
 
 	png(paste0(File_name, ".png"), width = 11.69, height = 8.3, units = "in", res = 300)
-	print(ggplot(Data_for_correlation, aes(Motif_GC_percentage, log2(N))) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(colour = Beta, size = Abs_delta_meth_pct), width = 0.2) +
-		 stat_summary(fun.data = stat_box_data, geom = "text", hjust = 0.5, vjust = 0.9, size=2.5) + labs(x = "Motif GC %", y = "Log2 (Coverage)") + scale_size_continuous(range = c(1, 4)) + theme_bw() + facet_wrap( ~ Library_type))
+	print(ggplot(Data_for_correlation, aes(Motif_GC_percentage, log2(N))) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(colour = Beta, size = get(Variable_annotation)), width = 0.2) +
+		 stat_summary(fun.data = stat_box_data, geom = "text", hjust = 0.5, vjust = 0.9, size=2.5) + labs(x = "Motif GC %", y = "Log2 (Coverage)", size = Variable_annotation) + scale_size_continuous(range = c(1, 4)) + theme_bw() + facet_wrap( ~ Library_type))
 	dev.off()
 	
 	p1 = ggplot(Data_for_correlation, aes(Motif_GC_percentage, log2(N))) + geom_boxplot(outlier.shape = NA) + geom_jitter(width = 0.05) +
@@ -484,7 +499,7 @@ load(file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs/Rarefied_CpG
 
 dir.create(full_path, recursive = TRUE)
 
-Rarefied_covs_grl = lapply(Rarefied_covs_grl, function(x) cbind(data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov), data.frame(mcols(x))))
+Rarefied_covs_grl = lapply(Rarefied_covs_grl, function(x) cbind(data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov), data.frame(mcols(x)), abs_delta_beta = x$abs_delta_meth_pct / 100))
 Rarefied_covs_grl = Merge_CpGs(Rarefied_covs_grl)
 Rarefied_covs_grl = lapply(Rarefied_covs_grl, function(x) { temp = GRanges(seqnames = x$chr, ranges=IRanges(start = x$pos, end = (x$pos + 1)))
                                                 values(temp) = x[!(colnames(x) %in% c("chr", "pos", "N", "X"))]
@@ -509,14 +524,14 @@ covs_grl_sig_common = lapply(covs_grl_sig_common, function(x) {
 covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) data.frame(covs_grl_sig_common[[x]]), simplify = FALSE, USE.NAMES = TRUE)
 covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) cbind(covs_grl_sig_common[[x]], data.frame(N = covs_grl_sig_common[[x]]$meth_cov + covs_grl_sig_common[[x]]$unmeth_cov)), simplify = FALSE, USE.NAMES = TRUE)
 covs_grl_sig_common = sapply(names(covs_grl_sig_common), function(x) cbind(covs_grl_sig_common[[x]], data.frame(Beta = covs_grl_sig_common[[x]]$meth_cov / covs_grl_sig_common[[x]]$N)), simplify = FALSE, USE.NAMES = TRUE)
-common_means_and_matrices = Plot_PCA_cor(covs_grl_sig_common, c("evenness", "abs_delta_meth_pct", "Beta", "N"), c("WR025V1ER", "WR025V9ER", "WR069V1ER", "WR069V9ER"), c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR"), "EM-Seq", "WGBS", file.path(full_path, "Unsmoothed_significant_CpGs_PCA"))
+common_means_and_matrices = Plot_PCA_cor(covs_grl_sig_common, c("evenness", "abs_delta_beta", "Beta", "N"), c("WR025V1ER", "WR025V9ER", "WR069V1ER", "WR069V9ER"), c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR"), "EM-Seq", "WGBS", file.path(full_path, "Unsmoothed_significant_CpGs_PCA"))
 
 # Plot coverage distribution
 temp_df = Variable_distribution(covs_grl_sig_common, "Tally", "N", file.path(full_path, "Unsmoothed_significant_CpGs_tally"), c(-5, 3000))
 temp_df = Variable_distribution(covs_grl_sig_common, "Density", "N", file.path(full_path, "Unsmoothed_significant_CpGs_density"), c(-500, 4000))
 
 # Plot heatmap. For row clustering, missing values use the group CpG average.
-common_means_and_matrices_subset = common_means_and_matrices[[2]][c("evenness", "abs_delta_meth_pct", "Beta", "N")]
+common_means_and_matrices_subset = common_means_and_matrices[[2]][c("evenness", "abs_delta_beta", "Beta", "N")]
 Plot_complex_heatmap(common_means_and_matrices_subset, EM_Seq_names = c("WR025V1ER", "WR025V9ER", "WR069V1ER", "WR069V9ER"), WGBS_Seq_names = c("WR025V1WR", "WR025V9WR", "WR069V1WR", "WR069V9WR"), file.path(full_path, "Unsmoothed_significant_CpGs_heatmap"))
 
 # Analyse motifs of heatmap.
