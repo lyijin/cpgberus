@@ -7,7 +7,7 @@ parsing the BAM files with `samtools depth` into plaintext TSV files, plot the
 data out in those tables.
 " -> doc
 
-setwd('~/csiro/stopwatch/human_tests/05_ramac.ont_long_reads/02_minimap2_vs_45s/')
+setwd('~/csiro/stopwatch/cpgberus/15_ont_minimap2_coverage/')
 PARSED_MPILEUP_TSV <- c(Sys.glob('./W*.parsed_mp.tsv.gz'), Sys.glob('./non-*.parsed_mp.tsv.gz'))
 
 suppressPackageStartupMessages({
@@ -70,3 +70,6 @@ g <- ggplot(combined_df, aes(x=pos, y=cov)) +
         panel.spacing.y = unit(1.5, 'lines'))
 print(g)
 ggsave('plot_depth.pdf', plot=g, width=8, height=8)
+
+# list deps
+sessionInfo()

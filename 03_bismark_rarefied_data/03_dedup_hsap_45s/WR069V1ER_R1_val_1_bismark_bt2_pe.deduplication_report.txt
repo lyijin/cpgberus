@@ -1,0 +1,7 @@
+
+Total number of alignments analysed in 02_map_vs_hsap_45s/WR069V1ER_R1_val_1_bismark_bt2_pe.bam:	101661
+Total number duplicated alignments removed:	2502 (2.46%)
+Duplicated alignments were found at:	2451 different position(s)
+
+Total count of deduplicated leftover sequences: 99159 (97.54% of total)
+

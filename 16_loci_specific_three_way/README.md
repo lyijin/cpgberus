@@ -1,5 +1,13 @@
 # `16_loci_specific_three_way/` folder #
 
+## Data used for plots ##
+
+The ONT bed files containing per-position methylation levels in this folder were produced by `megalodon`. See `06_process_ont_data/` for a fuller description--methylation calling was a finicky process, best just use the bed files.
+
+EM-seq and WGBS cov files with per-position methylation levels were called using the `bismark` pipeline, detailed in `03_bismark_rarefied_data/`.
+
+## Idea behind R code ##
+
 Folder contains two mega R script that carries out three-way comparisons between EM-seq, WGBS and ONT Cas9 readouts from the 45S rDNA loci in the human genome. One script looks at methylation levels (betas), another looks at coverages across the loci. The loci was chosen because it had a high GC% (mean of 72%) relative to the human genome (mean of 42%), and it is known that WGBS readouts get a bit more biased at high GC% regions.
 
 Probably easier to view the HTML file in this folder to see the R script in action + the plots that were made. Not all plots were included in the manuscript.
