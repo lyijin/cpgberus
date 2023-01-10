@@ -11,7 +11,7 @@
 
 <meta name="author" content="lie128" />
 
-<meta name="date" content="2022-12-19" />
+<meta name="date" content="2023-01-10" />
 
 <title>sigcpgs_mcgw_bias.R</title>
 
@@ -358,7 +358,7 @@ pre code {
 
 <h1 class="title toc-ignore">sigcpgs_mcgw_bias.R</h1>
 <h4 class="author">lie128</h4>
-<h4 class="date">2022-12-19</h4>
+<h4 class="date">2023-01-10</h4>
 
 </div>
 
@@ -451,7 +451,29 @@ pbinom(sum(sig_df$bool_mcgw), size=length(sig_df$bool_mcgw), prob=0.4468)</code>
 # change the p value much. H0 is unable to be rejected
 pbinom(sum(sig_df$bool_mcgw), size=length(sig_df$bool_mcgw), prob=0.4375)</code></pre>
 <pre><code>## [1] 0.3104028</code></pre>
-<pre class="r"><code># list deps used in this script
+<pre class="r"><code># what if... we only focus on singificantly diff positions where mu1 &gt; mu2
+# (higher beta in EM-seq than WGBS)
+table(sig_df$mu1 &gt; sig_df$mu2)</code></pre>
+<pre><code>## 
+## FALSE  TRUE 
+##    85    39</code></pre>
+<pre class="r"><code># yup that is in-line with plotted heatmap
+
+temp_df &lt;- sig_df[sig_df$mu1 &gt; sig_df$mu2, ]
+pbinom(sum(temp_df$bool_mcgw), size=length(temp_df$bool_mcgw), prob=0.4468)</code></pre>
+<pre><code>## [1] 0.269072</code></pre>
+<pre class="r"><code>pbinom(sum(temp_df$bool_mcgw), size=length(temp_df$bool_mcgw), prob=0.4375)</code></pre>
+<pre><code>## [1] 0.3091003</code></pre>
+<pre class="r"><code># let&#39;s try slicing it the other way, higher beta in WGBS than EM-seq
+temp_df &lt;- sig_df[sig_df$mu1 &lt; sig_df$mu2, ]
+pbinom(sum(temp_df$bool_mcgw), size=length(temp_df$bool_mcgw), prob=0.4468)</code></pre>
+<pre><code>## [1] 0.3749873</code></pre>
+<pre class="r"><code>pbinom(sum(temp_df$bool_mcgw), size=length(temp_df$bool_mcgw), prob=0.4375)</code></pre>
+<pre><code>## [1] 0.4420822</code></pre>
+<pre class="r"><code># so yeah, no matter how one slices it (ha), none of the comparisons are able
+# to reject H0
+
+# list deps used in this script
 sessionInfo()</code></pre>
 <pre><code>## R version 4.2.2 Patched (2022-11-10 r83330)
 ## Platform: x86_64-pc-linux-gnu (64-bit)
@@ -462,10 +484,12 @@ sessionInfo()</code></pre>
 ## LAPACK: /usr/lib/x86_64-linux-gnu/atlas/liblapack.so.3.10.3
 ## 
 ## locale:
-##  [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
-##  [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
-##  [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
-## [10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+##  [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+##  [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+##  [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+##  [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+## [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 ## 
 ## attached base packages:
 ## [1] stats4    stats     graphics  grDevices utils     datasets  methods  
@@ -487,20 +511,21 @@ sessionInfo()</code></pre>
 ## [11] lattice_0.20-45             jsonlite_1.8.3             
 ## [13] evaluate_0.18               rlang_1.0.6                
 ## [15] Matrix_1.5-3                DelayedArray_0.22.0        
-## [17] cli_3.4.1                   yaml_2.3.6                 
-## [19] parallel_4.2.2              xfun_0.35                  
-## [21] fastmap_1.1.0               GenomeInfoDbData_1.2.8     
-## [23] stringr_1.4.1               knitr_1.41                 
-## [25] sass_0.4.4                  grid_4.2.2                 
-## [27] Biobase_2.56.0              R6_2.5.1                   
-## [29] XML_3.99-0.12               BiocParallel_1.30.4        
-## [31] rmarkdown_2.18              magrittr_2.0.3             
-## [33] matrixStats_0.63.0          GenomicAlignments_1.32.1   
-## [35] codetools_0.2-18            Rsamtools_2.12.0           
-## [37] htmltools_0.5.3             SummarizedExperiment_1.26.1
-## [39] stringi_1.7.8               RCurl_1.98-1.9             
-## [41] cachem_1.0.6                crayon_1.5.2               
-## [43] rjson_0.2.21                BiocIO_1.6.0</code></pre>
+## [17] cli_3.4.1                   rstudioapi_0.14            
+## [19] parallel_4.2.2              yaml_2.3.6                 
+## [21] xfun_0.35                   fastmap_1.1.0              
+## [23] GenomeInfoDbData_1.2.8      stringr_1.4.1              
+## [25] knitr_1.41                  sass_0.4.4                 
+## [27] grid_4.2.2                  Biobase_2.56.0             
+## [29] R6_2.5.1                    BiocParallel_1.30.4        
+## [31] XML_3.99-0.12               rmarkdown_2.18             
+## [33] magrittr_2.0.3              matrixStats_0.63.0         
+## [35] GenomicAlignments_1.32.1    codetools_0.2-18           
+## [37] Rsamtools_2.12.0            htmltools_0.5.3            
+## [39] SummarizedExperiment_1.26.1 stringi_1.7.8              
+## [41] RCurl_1.98-1.9              cachem_1.0.6               
+## [43] crayon_1.5.2                rjson_0.2.21               
+## [45] BiocIO_1.6.0</code></pre>
 
 
 
