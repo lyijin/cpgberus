@@ -1,10 +1,5 @@
 # `13_check_mcgw_emseq_wgbs/` folder #
 
-TODO:confirm logic is sound then tidy things up.
-
-## Data used for plots ##
-
-
 ## Idea behind R code ##
 
 Folder contains two R scripts to answer two separate questions we had that were sparked mostly after coming across Ravichandran et al. 2022, https://www.science.org/doi/10.1126/sciadv.abm2427.
