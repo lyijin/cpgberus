@@ -42,7 +42,6 @@ Merged_dataframe_filt_long[Merged_dataframe_filt_long$variable == "MEAN_BASE_QUA
 Merged_dataframe_filt_long[Merged_dataframe_filt_long$variable == "READ_STARTS", "variable"] = "Read counts"
 
 Merged_dataframe_filt_long$variable = factor(Merged_dataframe_filt_long$variable, levels = c("Normalised Coverage", "Average base quality", "Read counts"))
-#Merged_dataframe_filt_long$GC = as.factor(Merged_dataframe_filt_long$GC)
 
 # Plot graph
 

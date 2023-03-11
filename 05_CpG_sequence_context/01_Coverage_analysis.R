@@ -18,7 +18,6 @@ path_to_cpgerus = "/scratch/user/uqdguanz/Projects/Meth/cpgberus"
 
 load(file.path(path_to_cpgerus, "04_parse_bismark_covs/Not_rarefied_grch38p13_combined_covs_grl.RData"))
 load(file.path(path_to_cpgerus, "04_parse_bismark_covs/Rarefied_grch38p13_combined_covs_grl.RData"))
-#load(file.path(path_to_cpgerus, "04_parse_bismark_covs/grch38p13_combined_covs_grl.RData"))
 
 #####  Functions  #####
 #######################
@@ -135,27 +134,5 @@ png(file.path(full_path, "Combined_tally.png"), units="in", width = 11.69, heigh
 plot(ggplot(Combined_tally, aes(x=x_values, y=y_values, group = Sample_name, color = Sample_name_2)) + geom_line(aes(linetype = Seq_type)) + scale_x_continuous(breaks = pretty_breaks(10), limits = c(-5, 70)) + 
 			scale_y_continuous(label=comma, breaks = pretty_breaks(10)) + theme_minimal(15) + xlab("Coverage") + ylab("Frequency") + labs(color = "Sample", linetype = "Library type") + facet_wrap( ~ Rarefaction))
 dev.off()
-
-
-# #####  Analysis using density and tally (original)  #####
-# #########################################################
-
-# # Total coverage calculation, convert to dataframe
-# Covs_grl_all_df = lapply(covs_grl, function(x) data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov, cpg_context_nnncgnnn = x$cpg_context_nnncgnnn,
-                                                            # evenness = x$evenness, abs_delta_meth_pct = x$abs_delta_meth_pct))
-# rm(covs_grl)
-
-# # Subset N (coverage) <= 100
-# Covs_grl_all_df_subset = lapply(Covs_grl_all_df, function(x) x[x[, "N"] <= 100, ])
-
-# # Calculate and plot coverage density, coverage filtered < 100 because density calculations are affected.
-# Original_covs_grl_all_df_density = Variable_distribution(Covs_grl_all_df_subset, "Density", "N", file.path(full_path, "Original_coverage_analysis_density"), c(-5, 70))
-
-# # Calculate and plot coverage tally without filtering for coverage
-# Original_covs_grl_all_df_tally = Variable_distribution(Covs_grl_all_df, "Tally", "N", file.path(full_path, "Original_coverage_analysis_tally"), c(-5, 70))
-
-# # Save workspace
-# save(Not_rarefied_covs_grl_all_df_density, Not_rarefied_covs_grl_all_df_tally, Rarefied_covs_grl_all_df_density, Rarefied_covs_grl_all_df_tally, Original_covs_grl_all_df_density, Original_covs_grl_all_df_tally,
-    # file = file.path(full_path, "Coverage_analysis.RData"))
 
 quit(save = "no")
