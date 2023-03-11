@@ -69,5 +69,22 @@ pbinom(sum(sig_df$bool_mcgw), size=length(sig_df$bool_mcgw), prob=0.4468)
 # change the p value much. H0 is unable to be rejected
 pbinom(sum(sig_df$bool_mcgw), size=length(sig_df$bool_mcgw), prob=0.4375)
 
+# what if... we only focus on singificantly diff positions where mu1 > mu2
+# (higher beta in EM-seq than WGBS)
+table(sig_df$mu1 > sig_df$mu2)
+# yup that is in-line with plotted heatmap
+
+temp_df <- sig_df[sig_df$mu1 > sig_df$mu2, ]
+pbinom(sum(temp_df$bool_mcgw), size=length(temp_df$bool_mcgw), prob=0.4468)
+pbinom(sum(temp_df$bool_mcgw), size=length(temp_df$bool_mcgw), prob=0.4375)
+
+# let's try slicing it the other way, higher beta in WGBS than EM-seq
+temp_df <- sig_df[sig_df$mu1 < sig_df$mu2, ]
+pbinom(sum(temp_df$bool_mcgw), size=length(temp_df$bool_mcgw), prob=0.4468)
+pbinom(sum(temp_df$bool_mcgw), size=length(temp_df$bool_mcgw), prob=0.4375)
+
+# so yeah, no matter how one slices it (ha), none of the comparisons are able
+# to reject H0
+
 # list deps used in this script
 sessionInfo()
