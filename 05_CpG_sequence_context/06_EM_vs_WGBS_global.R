@@ -11,6 +11,11 @@ library(bsseq)
 library(GGally)
 library(reshape2)
 library(scales)
+library(showtext)
+
+font_add_google("Source Sans Pro", "source_sans")
+showtext_auto()
+showtext_opts(dpi = 300)
 
 #####  Load data  #####
 #######################

@@ -24,6 +24,11 @@ library(factoextra)
 library(BSgenome.Hsapiens.UCSC.hg38)
 library(gridExtra)
 library(circlize)
+library(showtext)
+
+font_add_google("Source Sans Pro", "source_sans")
+showtext_auto()
+showtext_opts(dpi = 300)
 
 #####  Load data  #####
 #######################
@@ -62,9 +67,9 @@ Variable_distribution <- function(List_of_dataframes, density_or_tally, variable
     temp_df = do.call(rbind, temp_df)
     
     # Add sample name without suffix and sequencing type column
-    temp_df$Sample_name_2 = substr(temp_df$Sample_name, 1, nchar(temp_df$Sample_name) - 1)
+    temp_df$Sample_name_2 = substr(temp_df$Sample_name, 1, nchar(as.character(temp_df$Sample_name)) - 1)
 
-    temp_df$Seq_type = temp_df$Sample_name
+    temp_df$Seq_type = as.character(temp_df$Sample_name)
     temp_df$Seq_type[grep("E$", temp_df$Sample_name)] = "EM-Seq"
     temp_df$Seq_type[grep("W$", temp_df$Sample_name)] = "WGBS"
 

@@ -197,6 +197,11 @@ Create_stat_list_per_chr <- function(bsseq_object, smoothing_bool, smoothing_spa
 #####  Analysis for *existing* CpGs (rarefied) #####
 ####################################################
 
+load(file.path(path_to_cpgerus, "04_parse_bismark_covs/Rarefied_grch38p13_combined_covs_grl.RData"))
+
+full_path = file.path(path_to_cpgerus, "05_CpG_sequence_context/02_outputs")
+dir.create(full_path)
+
 # Find all CpGs which exist in all samples, merge and convert to bbseq object
 Covs_grl_all_df = lapply(Rarefied_covs_grl, function(x) data.frame(chr = seqnames(x), pos = start(x), N = (x$meth_cov + x$unmeth_cov), X = x$meth_cov))
 Covs_grl_all_df = Merge_CpGs(Covs_grl_all_df)

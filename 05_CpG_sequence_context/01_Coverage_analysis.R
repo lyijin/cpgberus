@@ -10,6 +10,11 @@
 library(GenomicRanges)
 library(ggplot2)
 library(scales)
+library(showtext)
+
+font_add_google("Source Sans Pro", "source_sans")
+showtext_auto()
+showtext_opts(dpi = 300)
 
 #####  Load data  #####
 #######################
@@ -52,10 +57,10 @@ Variable_distribution <- function(List_of_dataframes, density_or_tally, variable
     Not_rarefaction_position = !Rarefaction_position
     
     temp_df$Sample_name_2 = "temp_string"
-    temp_df$Sample_name_2[Rarefaction_position] = substr(temp_df$Sample_name[Rarefaction_position], 1, nchar(temp_df$Sample_name[Rarefaction_position]) - 2)
-    temp_df$Sample_name_2[Not_rarefaction_position] = substr(temp_df$Sample_name[Not_rarefaction_position], 1, nchar(temp_df$Sample_name[Not_rarefaction_position]) - 1)
+    temp_df$Sample_name_2[Rarefaction_position] = substr(temp_df$Sample_name[Rarefaction_position], 1, nchar(as.character(temp_df$Sample_name[Rarefaction_position])) - 2)
+    temp_df$Sample_name_2[Not_rarefaction_position] = substr(temp_df$Sample_name[Not_rarefaction_position], 1, nchar(as.character(temp_df$Sample_name[Not_rarefaction_position])) - 1)
 
-    temp_df$Seq_type = temp_df$Sample_name
+    temp_df$Seq_type = as.character(temp_df$Sample_name)
     temp_df$Seq_type[grep("E$|ER$", temp_df$Sample_name)] = "EM-seq"
     temp_df$Seq_type[grep("W$|WR$", temp_df$Sample_name)] = "WGBS"
 

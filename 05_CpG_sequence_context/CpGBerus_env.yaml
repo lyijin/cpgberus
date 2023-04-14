@@ -1,0 +1,23 @@
+name: CpGBerus_env
+dependencies:
+  - conda-forge::r-base
+  - conda-forge::r-reshape2
+  - conda-forge::r-ggplot2
+  - conda-forge::r-scales
+  - conda-forge::r-factoextra
+  - conda-forge::r-gridextra
+  - conda-forge::r-circlize
+  - conda-forge::r-ggally
+  - conda-forge::icu=58.2
+  - conda-forge::libiconv
+  - conda-forge::r-matrix
+  - conda-forge::r-ade4
+  - conda-forge::r-globaloptions=0.1.2
+  - conda-forge::r-showtext
+  - bioconda::bioconductor-bsgenome.hsapiens.ucsc.hg38
+  - bioconda::bioconductor-genomicranges
+  - bioconda::bioconductor-bsseq
+  - bioconda::bioconductor-dss
+  - bioconda::bioconductor-complexheatmap
+  - bioconda::bioconductor-motifstack
+  - bioconda::bioconductor-delayedarray

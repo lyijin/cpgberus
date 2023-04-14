@@ -16,6 +16,11 @@ library(GenomicRanges)
 library(BSgenome.Hsapiens.UCSC.hg38)
 library(ggplot2)
 library(bsseq)
+library(showtext)
+
+font_add_google("Source Sans Pro", "source_sans")
+showtext_auto()
+showtext_opts(dpi = 300)
 
 #####  Load data  #####
 #######################
