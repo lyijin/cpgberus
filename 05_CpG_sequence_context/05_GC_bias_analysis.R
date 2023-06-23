@@ -9,6 +9,11 @@
 library(ggplot2)
 library(reshape2)
 library(scales)
+library(showtext)
+
+font_add_google("Source Sans Pro", "source_sans")
+showtext_auto()
+showtext_opts(dpi = 300)
 
 #####  Load data  #####
 #######################
@@ -18,7 +23,6 @@ full_path = paste0(path_to_cpgerus, "/05_CpG_sequence_context/05_outputs/")
 dir.create(full_path, recursive = TRUE)
 
 # Combine dataframes
-
 Files_to_analyse = list.files(paste0(path_to_cpgerus, "/05_CpG_sequence_context/collectgcbiasmetrics"), "gc_bias_metrics.txt", full.names = TRUE)
 Merged_dataframe = data.frame()
 
@@ -42,7 +46,6 @@ Merged_dataframe_filt_long[Merged_dataframe_filt_long$variable == "MEAN_BASE_QUA
 Merged_dataframe_filt_long[Merged_dataframe_filt_long$variable == "READ_STARTS", "variable"] = "Read counts"
 
 Merged_dataframe_filt_long$variable = factor(Merged_dataframe_filt_long$variable, levels = c("Normalised Coverage", "Average base quality", "Read counts"))
-#Merged_dataframe_filt_long$GC = as.factor(Merged_dataframe_filt_long$GC)
 
 # Plot graph
 

@@ -33,8 +33,10 @@ Motif_frequency_table <- function(Granges_object, number_of_granges) {
         
         # Clean up motif_table_sum
         nucleotide_freq_temp = as.data.frame(t(motif_table_sum))
-        colnames(nucleotide_freq_temp) <- as.character(nucleotide_freq_temp["Motif", ])
+        colnames(nucleotide_freq_temp) <- unlist(nucleotide_freq_temp["Motif", ], use.names = FALSE)
         nucleotide_freq_temp = nucleotide_freq_temp[!(row.names(nucleotide_freq_temp) %in% "Motif"), , drop = FALSE]
+		nucleotide_freq_temp[] <- lapply(nucleotide_freq_temp, as.character)
+		nucleotide_freq_temp[] <- lapply(nucleotide_freq_temp, as.integer)
         
         # Fill in missing nucleotides in nucleotide_freq_temp with 0
         if (identical(sort(column_names), sort(colnames(nucleotide_freq_temp))) == FALSE) {
@@ -43,7 +45,8 @@ Motif_frequency_table <- function(Granges_object, number_of_granges) {
             colnames(temp_df) <- columns_to_add
             nucleotide_freq_temp = cbind(nucleotide_freq_temp, temp_df)
         }
-        nucleotide_freq_temp = lapply(nucleotide_freq_temp, as.integer)
+		
+        nucleotide_freq_temp[] <- lapply(nucleotide_freq_temp, as.integer)
         nucleotide_freq = rbind(nucleotide_freq, nucleotide_freq_temp)
     }
 
