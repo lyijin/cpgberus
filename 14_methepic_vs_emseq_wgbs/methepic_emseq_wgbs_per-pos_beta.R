@@ -392,5 +392,25 @@ diag_message('Positions with GC > 70% in immediate context: ', sum(wide_df$gcpct
 diag_message('Positions with GC > 75% in immediate context: ', sum(wide_df$gcpct > 75))
 # don't think analyses using these collection of points would be convincing...
 
+# but could it be that there are more cross-reactive probes amongst the high
+# GC (GC > 75%) probes than expected?
+high_gc_probes <- rownames(wide_df[wide_df$gcpct > 75, ])
+head(high_gc_probes)
+cross_hyb_probes <- read.csv('13059_2016_1066_MOESM1_ESM.csv')$X
+cross_hyb_probes <- intersect(cross_hyb_probes, rownames(wide_df))
+head(cross_hyb_probes)
+
+# numbers for fisher's exact / hypergeometric test
+diag_message('There are ', nrow(wide_df), ' EPIC probes (not 850k).')
+diag_message('There are ', length(high_gc_probes), ' high GC probes.')
+diag_message('There are ', length(cross_hyb_probes),
+             ' cross-reactive probes within the universe of EPIC probes.')
+diag_message('There are ', sum(high_gc_probes %in% cross_hyb_probes),
+             ' high GC & cross-reactive probes.')
+diag_message("One-tailed Fisher's exact for P(X >= 20) = ", 
+             fisher.test(matrix(c(20, 4785, 215, 98650), nrow=2), alternative='greater')$p.value)
+# in plain English, it means that there are significantly MORE cross-reactive
+# probes in the high-GC probes.
+
 # list deps used in this script
 sessionInfo()
