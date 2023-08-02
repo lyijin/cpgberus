@@ -2,70 +2,46 @@
 
 A four-headed beast stands guard at the gates of Methylation. All four heads bark differently--which one's the best at revealing the secrets behind the guarded gates?
 
-![Gustav Dore's illustration of Cerberus in Dante's *Inferno*; public domain](cerberus.jpg)
+![random cute dog picture sourced from the internet](cerberus.jpg)
 
-(Yes, pedantically speaking, Cerberuses tend to have a max of three heads. We, uh, had had a surprise inclusion of a fourth technique later during the project.)
+(Yes, Cerberuses tend to have three heads. We, uh, had had a surprise inclusion of a fourth technique later during the project.)
 
-## Common abbreviations ##
+## The four heads ##
 
-WGBS: Whole genome bisulphite sequencing, the current gold standard.
+**WGBS:** Whole genome bisulphite sequencing, the current gold standard.
 
-EM-seq: Enzymatic Methyl-seq, uses two enzymes to convert DNA instead of sodium bisulphite.
+**EM-seq:** Enzymatic Methyl-seq, uses two enzymes to convert DNA instead of sodium bisulphite.
 
-EPIC: Infinium MethylationEPIC arrays, checks methylation status of ~850,000 positions. Provides "analogue" methylation readouts.
+**EPIC:** Infinium MethylationEPIC arrays, checks methylation status of > 850,000 cytosines. Provides more "analogue" methylation readouts. We used v1 arrays, v2 came out later after we finished our work.
 
-ONT: Oxford Nanopore Technology, allows for long reads and detection of base modifications directly with fancy machine learning.
+**ONT:** Oxford Nanopore Technology, allows for long reads and detection of base modifications directly with ~~black magic~~ fancy machine learning.
 
-## Placeholder notes ##
+## Folder notes ##
 
-Naming of folders in this project is mainly determined by task.
+Naming of folders in this project is mainly determined by task. Sequential naming is intentional, and the later folders might depend on code from earlier folders--never the other way around.
 
-`data`: put reference data here e.g. genomes, annots, array manifests, ...
+`data`: contain reference data common to the other folders e.g. genomes, annots, array manifests, etc. These files are too large to be uploaded to GitHub, but available via CSIRO DAP.
 
-`00_series_folders`: these folders contain scripts/pipelines that process raw data into intermediary tables.
+`01_txdb`: prepare human annotations from GENCODE v38.
 
-`10_series_folders`: these folders contain scripts that parse intermediary tables into plots, which become (supplementary) figures in the manuscript.\
-Examples: `10_emseq_vs_wgbs`, `11_methepic_vs_emseq_wgbs`, ...
+`02_process_methepic_data`: prepare MethylationEPIC data.
 
-Standardisation of ggplot2 aesthetics: use `theme_minimal()` if you don't mind?
+`03_bismark_rarefied_data`: prepare WGBS and EM-seq data.
 
-Standardisation of colour scheme: no opinion atm. Use default ggplot2 colour schemes for now, can be tweaked easily for publication later.
+`04_parse_bismark_covs`: compile the per-sample methylation coverages and betas from `03` into giant tables used in later scripts.
 
-## Analysis notes ##
+`05_CpG_sequence_context`: perform EM-seq vs. WGBS analyses.
 
-WR025 and WR069 are both females. The tables still do contain chrY and chrM (but not lambda or pUC19 though) so you might want to filter these chrs out downstream.
+`06_process_ont_data`: prepare ONT data.
 
-Rarefied files are denoted with an "R" in the suffix of the sample name, e.g. WR069V1W --> WR069V1WR. All rarefied files contain 166,282,895 reads at raw FASTQ level (i.e. can differ post-mapping/-dedup because different files had had different mapping/duplication rates).
+(07-12 is intentionally missing, were overflow folder numbers in case we needed to do more processing/analyses before the next batch of folders.)
 
-### Location of `bam` files ###
+`13_check_mcgw_emseq_wgbs`: do EM-seq reads have biased conversion around MCGW?
 
-These files are huge, won't ever be in the repo; they're accessible on the mounted `hb-stopwatch/` folder.
+`14_methepic_vs_emseq_wgbs`: perform EPIC vs. EM-seq vs. WGBS analyses.
 
-```bash
-lie128@blackpuma-ri:/datasets/work/hb-stopwatch/work/key_intermediate_files/human_tests/02_agrf_ramac.emseq_wgbs_methepic.varsamp/03_dedup_grch38p13_lambda_puc$ ls -l WR025* WR069*
--rw-r--r-- 1 lie128 lie128  35G Oct 20 15:15 WR025V1ER_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 319125  73G Sep 12 08:41 WR025V1E_S2_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 lie128  32G Oct 20 03:38 WR025V1WR_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 319125  47G Sep 12 17:23 WR025V1W_S21_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 lie128  36G Oct 20 05:16 WR025V9ER_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 319125  44G Sep 11 20:18 WR025V9E_S12_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 lie128  31G Oct 20 03:41 WR025V9WR_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 319125  34G Sep 12 02:46 WR025V9W_S23_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 lie128  33G Oct 20 09:02 WR069V1ER_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 319125 122G Sep 17 00:22 WR069V1E_S4_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 lie128  32G Oct 20 03:49 WR069V1WR_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 319125  53G Sep 12 01:59 WR069V1W_S22_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 lie128  35G Oct 20 05:48 WR069V9ER_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 319125  37G Sep 11 18:52 WR069V9E_S14_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 lie128  31G Oct 20 04:19 WR069V9WR_R1_val_1_bismark_bt2_pe.deduplicated.bam
--rw-r--r-- 1 lie128 319125  31G Sep 12 19:55 WR069V9W_S24_R1_val_1_bismark_bt2_pe.deduplicated.bam
-```
-(there are more files in the folder mentioned above, but for this project, ignore files that are not WR025/WR069)
+`15_ont_minimap2_coverage`: check coverage for ONT reads, estimate enrichment of 45S rDNA relative to non-targeted regions.
 
-### Location of `bismark bam2nuc` output ###
+`16_loci_specific_three_way`: perform ONT vs. EM-seq vs. WGBS analyses centred around the 45S rDNA loci.
 
-These files are tiny, they're uploaded in this repo.
-
-Original files: `cpgberus/02_bismark_wgbs_emseq_data/03_dedup_grch38p13_lambda_puc/*.nucleotide_stats.txt`
-
-Rarified files: `cpgberus/06_rarefaction/03_dedup_grch38p13_lambda_puc/*.nucleotide_stats.txt`
+Detailed READMEs can be found in every subfolder!

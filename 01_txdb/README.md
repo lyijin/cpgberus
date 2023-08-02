@@ -1,4 +1,4 @@
-# `01\_txdb`: convert gencode GTF into R-friendly sqlitedb/RData format #
+# `01_txdb`: convert gencode GTF into R-friendly sqlitedb/RData format #
 
 Git cloned from https://bitbucket.csiro.au/scm/~ros259/txdb.git, and modified to work on GENCODE v38.
 

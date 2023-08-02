@@ -2,11 +2,7 @@
 
 Folder contains scripts that parses bismark covs, and produces intermediate files that eases downstream analysis/plotting.
 
-First of all, you need to mount the bowen storage drive\
-`sudo mount -t nfs -o vers=3 fs1-cbr.nexus.csiro.au:/data/{hb-stopwatch}/work/ /<destination_mount_path>`
-
-There should be a couple of files here when symlinked to the proper folder at\
-`/<destination_mount_path>/cpgberus/04_parse_bismark_covs`
+CONFIRM DAP LINK AND FOLDER CONTENTS
 
 ```bash
 lie128@blackpuma-ri:/datasets/work/hb-stopwatch/work/cpgberus/04_parse_bismark_covs$ ls -l

@@ -1,8 +1,10 @@
 # Processing ONT data for this project #
 
-The raw ONT data produced for this project is too large to be uploaded here--please download it from TODO:insert CSIRO DAP.
+The four- or five-base ONT data (FAST5/FASTQ) produced for this project cannot be uploaded due to potential identifiability concerns. The BED files for the per-position methylation levels (near negligible risk of re-identification) are available at TODO:CSIRO DAP.
 
-The cool/good thing about ONT data is that you get separate folders for FAST5 (raw raw data) and basecalled FASTQ data, binned into "PASS" or "FAIL" for each type of data.
+## Introduction ##
+
+The cool/good thing about raw ONT data is that you get separate folders for FAST5 (raw raw data) and basecalled FASTQ data, binned into "PASS" or "FAIL" for each type of data.
 
 As relative newcomers to this type of data, we did not second-guess ONT's calls, and used the FAST5 PASS and FASTQ PASS contents for methylation calling and coverage calculations respectively.
 
