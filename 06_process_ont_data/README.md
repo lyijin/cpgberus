@@ -1,6 +1,6 @@
 # Processing ONT data for this project #
 
-The four- or five-base ONT data (FAST5/FASTQ) produced for this project cannot be uploaded due to potential identifiability concerns. The BED files for the per-position methylation levels (near negligible risk of re-identification) are available at TODO:CSIRO DAP.
+The four- or five-base ONT data (FAST5/FASTQ) produced for this project cannot be uploaded due to potential identifiability concerns. The BED files for the per-position methylation levels (near negligible risk of re-identification) are available in this repo, in the same folder as the analysis scripts (`16_loci_specific_three_way/`).
 
 ## Introduction ##
 
@@ -93,15 +93,15 @@ $ ls -l */
 
 00_raw_reads/:
 total 4.0K
-drwxr-xr-x 7 lie128 hpc-users 4.0K Feb 17 12:15 20210914_0348_X4_FAQ88026_aa298ba1/
+drwxr-xr-x  4.0K Feb 17 12:15 20210914_0348_X4_FAQ88026_aa298ba1/
 
 03_remora_vs_45s/:
 total 4.0K
-drwxr-xr-x 5 lie128 hpc-users 4.0K Feb 17 12:28 ont-guppy/
+drwxr-xr-x  4.0K Feb 17 12:28 ont-guppy/
 
 refs/:
 total 280K
--rw-r--r-- 1 lie128 hpc-users 278K Jun 17  2021 homo_sapiens.KY962518.last_11kb_first.ont.mmi
+-rw-r--r--  278K Jun 17  2021 homo_sapiens.KY962518.last_11kb_first.ont.mmi
 ```
 
 and
@@ -110,19 +110,19 @@ and
 $ ls -l 00_raw_data/20210914_0348_X4_FAQ88026_aa298ba1/fast5_pass/
 
 total 52K
-drwxr-xr-x 2 lie128 hpc-users 4.0K Sep 16 12:22 barcode13/
-drwxr-xr-x 2 lie128 hpc-users 4.0K Sep 16 12:22 barcode14/
-drwxr-xr-x 2 lie128 hpc-users 4.0K Sep 16 12:22 barcode15/
-drwxr-xr-x 2 lie128 hpc-users 4.0K Sep 16 12:22 barcode16/
-drwxr-xr-x 2 lie128 hpc-users 4.0K Sep 16 12:22 barcode17/
-drwxr-xr-x 2 lie128 hpc-users 4.0K Sep 16 12:22 barcode18/
-drwxr-xr-x 2 lie128 hpc-users 4.0K Sep 16 12:22 barcode19/
-drwxr-xr-x 2 lie128 hpc-users 4.0K Sep 16 12:22 barcode20/
-drwxr-xr-x 2 lie128 hpc-users 4.0K Sep 16 12:22 barcode21/
-drwxr-xr-x 2 lie128 hpc-users 4.0K Sep 16 12:22 barcode22/
-drwxr-xr-x 2 lie128 hpc-users 4.0K Sep 16 12:22 barcode23/
-drwxr-xr-x 2 lie128 hpc-users 4.0K Sep 16 12:22 barcode24/
-drwxr-xr-x 2 lie128 hpc-users 4.0K Sep 16 12:22 unclassified/
+drwxr-xr-x  4.0K Sep 16 12:22 barcode13/
+drwxr-xr-x  4.0K Sep 16 12:22 barcode14/
+drwxr-xr-x  4.0K Sep 16 12:22 barcode15/
+drwxr-xr-x  4.0K Sep 16 12:22 barcode16/
+drwxr-xr-x  4.0K Sep 16 12:22 barcode17/
+drwxr-xr-x  4.0K Sep 16 12:22 barcode18/
+drwxr-xr-x  4.0K Sep 16 12:22 barcode19/
+drwxr-xr-x  4.0K Sep 16 12:22 barcode20/
+drwxr-xr-x  4.0K Sep 16 12:22 barcode21/
+drwxr-xr-x  4.0K Sep 16 12:22 barcode22/
+drwxr-xr-x  4.0K Sep 16 12:22 barcode23/
+drwxr-xr-x  4.0K Sep 16 12:22 barcode24/
+drwxr-xr-x  4.0K Sep 16 12:22 unclassified/
 ```
 
 This SLURM script only calls 5mC in the CpG context, as we weren't interested in non-CpG methylation nor 5hmC bases.
@@ -135,7 +135,7 @@ This SLURM script only calls 5mC in the CpG context, as we weren't interested in
 #SBATCH --gres=gpu:1
 #SBATCH --mem=16g
 
-# application specific commands
+# uncomment these lines if the slurm script is executed on a command-line env that hasn't had "megalodon" conda env activated
 #module load miniconda3
 #conda activate megalodon
 
@@ -205,11 +205,11 @@ Also, we like to collate downloaded tools in `~/tools`. It looks like this
 ```shell
 ls -l ~/tools/
 total 861M
-drwxr-xr-x  7 lie128 hpc-users 4.0K Sep 22 13:19 megalodon/
-drwxr-xr-x 10 lie128 hpc-users 8.0K Sep 22 13:07 minimap2/
-drwxr-xr-x  5 lie128 hpc-users 4.0K Sep 22 11:39 ont-guppy/
--rw-r--r--  1 lie128 hpc-users 857M Sep 22 10:53 ont-guppy_5.0.14_linux64.tar.gz
-drwxr-xr-x  5 lie128 hpc-users 4.0K Sep 22 11:39 rerio/
+drwxr-xr-x  4.0K Sep 22 13:19 megalodon/
+drwxr-xr-x  8.0K Sep 22 13:07 minimap2/
+drwxr-xr-x  4.0K Sep 22 11:39 ont-guppy/
+-rw-r--r--  857M Sep 22 10:53 ont-guppy_5.0.14_linux64.tar.gz
+drwxr-xr-x  4.0K Sep 22 11:39 rerio/
 ```
 
 ## Troubleshooting corner ##

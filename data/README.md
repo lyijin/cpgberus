@@ -1,6 +1,6 @@
 # `data/` folder #
 
-This folder contains genomes (for mapping) and gene annotation files that are too large for GitHub, they are available at TODO:DAP link.
+This folder contains genomes (for mapping) and gene annotation files that are too large for GitHub, they are available at https://data.csiro.au/collection/csiro:58492, navigate to "Files" > `/data`.
 
 ## Genomes ##
 

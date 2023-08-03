@@ -1,8 +1,8 @@
 # `15_ont_minimap2_coverage/` folder #
 
-This folder documents our method that check coverages of ONT reads (following the amplification-free, Cas9-directed protocol) mapping to the targeted 45S rDNA loci in the human genome. The loci was chosen because it had a high GC% (mean of 72%) relative to the human genome (mean of 42%), and it is known that WGBS readouts get a bit more biased at high GC% regions.
+This folder documents our method to check the coverages of ONT reads (following the amplification-free, Cas9-directed protocol) that mapped to the targeted 45S rDNA loci in the human genome. The loci was chosen because it had a high GC% (mean of 72%) relative to the human genome (mean of 42%), and it is known that WGBS readouts are biased at high GC% regions.
 
-The process of producing the `*.parsed_mp.tsv` intermediate tables can be a bit convoluted. Due to upload size constraints, we only make `*.parsed_mp.tsv` files available in a compressed format.
+The process of producing the `*.parsed_mp.tsv` intermediate tables can be a bit convoluted. Due to upload size constraints, we only make `*.parsed_mp.tsv` files available in a compressed format (available in this folder).
 
 ## Mapping ONT FASTQ against 45S reference ##
 
@@ -31,24 +31,3 @@ The compressed mpileup tables from the previous step were then parsed using `par
 An R script reads the `*.parsed_mp.tsv` files for each of the separately barcoded samples, and plots coverage for both the Watson and Crick strands on a stacked bar chart.
 
 This was done to illustrate the "U-shaped" nature of the resulting coverages, but strangely this shape was not present in the non-barcoded reads. Perhaps non-barcoded reads did not have double-strand breaks produced by the Cas9 machinery, and the reads come from stochastic fracturing of the DNA ends in the loci of interest? The broken ends thread through the pores and get sequenced. Statistically, there's an equal chance of the DNA getting fractured along the entire loci--hence the flat coverage?
-
-## What the intermediate files look like ##
-
-```shell
-$ ls -l
--rw-r--r--  1 lie128 lie128   42M Sep 20 11:32 FAQ88026_pass_5ad1247b.barcode17.bam
--rw-r--r--  1 lie128 lie128   24M Sep 20 13:09 FAQ88026_pass_5ad1247b.barcode17.mpileup.tsv.gz
--rw-r--r--  1 lie128 lie128  362K Sep 20 13:23 FAQ88026_pass_5ad1247b.barcode17.parsed_mp.tsv.gz
--rw-r--r--  1 lie128 lie128   40M Sep 20 11:32 FAQ88026_pass_5ad1247b.barcode18.bam
--rw-r--r--  1 lie128 lie128   23M Sep 20 13:09 FAQ88026_pass_5ad1247b.barcode18.mpileup.tsv.gz
--rw-r--r--  1 lie128 lie128  362K Sep 20 13:23 FAQ88026_pass_5ad1247b.barcode18.parsed_mp.tsv.gz
--rw-r--r--  1 lie128 lie128   31M Sep 20 11:32 FAQ88026_pass_5ad1247b.barcode19.bam
--rw-r--r--  1 lie128 lie128   19M Sep 20 13:09 FAQ88026_pass_5ad1247b.barcode19.mpileup.tsv.gz
--rw-r--r--  1 lie128 lie128  346K Sep 20 13:23 FAQ88026_pass_5ad1247b.barcode19.parsed_mp.tsv.gz
--rw-r--r--  1 lie128 lie128   51M Sep 20 11:33 FAQ88026_pass_5ad1247b.barcode20.bam
--rw-r--r--  1 lie128 lie128   30M Sep 20 13:09 FAQ88026_pass_5ad1247b.barcode20.mpileup.tsv.gz
--rw-r--r--  1 lie128 lie128  374K Sep 20 13:23 FAQ88026_pass_5ad1247b.barcode20.parsed_mp.tsv.gz
--rw-r--r--  1 lie128 lie128  606M Sep 20 11:36 FAQ88026_pass_5ad1247b.unclassified.bam
--rw-r--r--  1 lie128 lie128   55M Sep 20 13:09 FAQ88026_pass_5ad1247b.unclassified.mpileup.tsv.gz
--rw-r--r--  1 lie128 lie128  467K Sep 20 13:24 FAQ88026_pass_5ad1247b.unclassified.parsed_mp.tsv.gz
-```
